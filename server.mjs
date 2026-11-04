@@ -76,13 +76,14 @@ if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.m
     console.error("PORT must be an integer between 1 and 65535.");
     process.exit(1);
   }
+  const host = process.env.HOST ?? "127.0.0.1";
   const server = createAppServer();
   server.on("error", (error) => {
     console.error(`Unable to start the local server: ${error.message}`);
     process.exit(1);
   });
-  server.listen(port, "127.0.0.1", () => {
-    console.log(`Data + AI Trailfinder: http://127.0.0.1:${port}`);
+  server.listen(port, host, () => {
+    console.log(`Data + AI Trailfinder: http://${host}:${port}`);
     console.log("Press Ctrl+C to stop.");
   });
 }

@@ -28,6 +28,31 @@ ssh -N -L 3000:127.0.0.1:3000 USER@REMOTE_HOST
 
 Keep the SSH terminal open, then open **http://127.0.0.1:3000/** locally. If local port 3000 is occupied, use `-L 3001:127.0.0.1:3000` and open port 3001 instead. No public exposure is required.
 
+## Deploy to Azure App Service (Basic B1)
+
+The [deployment workflow](.github/workflows/deploy-app-service.yml) runs on pushes to `main` or manually from the Actions tab. It runs the tests, provisions a dedicated **Linux Basic B1** App Service plan and Node.js 22 web app using [Bicep](infra/app-service.bicep), deploys the runtime files, and checks the public HTTPS homepage. No build or dependency installation is needed.
+
+### One-time Azure and GitHub setup
+
+1. Create an Azure resource group in a region that supports Linux App Service B1, for example `az group create --name ignite-trailfinder --location westeurope`. The workflow uses this existing resource group.
+2. Create a Microsoft Entra app registration and its service principal. Grant that identity **Contributor** on this resource group, not the entire subscription.
+3. Add a federated credential to the app registration for GitHub Actions with issuer `https://token.actions.githubusercontent.com`, audience `api://AzureADTokenExchange`, and subject `repo:StuartvdLee/ignite-session-builder:ref:refs/heads/main`. This permits deployments from `main`, including manual runs on that branch. Adjust the owner/repository if deploying a fork.
+4. In the repository's **Settings > Secrets and variables > Actions**, add the following:
+
+| Kind | Name | Value |
+| --- | --- | --- |
+| Secret | `AZURE_CLIENT_ID` | Entra app registration's application (client) ID |
+| Secret | `AZURE_TENANT_ID` | Azure directory (tenant) ID |
+| Secret | `AZURE_SUBSCRIPTION_ID` | Subscription containing the resource group |
+| Variable | `AZURE_RESOURCE_GROUP` | Existing resource group name, e.g. `ignite-trailfinder` |
+| Variable | `AZURE_WEBAPP_NAME` | Globally unique web app name, e.g. `your-org-ignite-trailfinder` |
+
+Merge the workflow to `main`, then push to `main` or run **Deploy to Azure App Service** manually with `main` selected. Azure provisions the app at `https://<AZURE_WEBAPP_NAME>.azurewebsites.net` (use the app's default hostname from Azure if it includes an additional generated suffix). Authentication uses OIDC; no publish profile or long-lived client secret is needed.
+
+The template creates `<AZURE_WEBAPP_NAME>-plan` with one B1 instance and Always On enabled. **Basic B1 is a paid tier**, charged while the plan exists, even without traffic. Use a new app name and a dedicated plan; every deployment reapplies B1 and the template's app settings, so do not point this at an unrelated existing app or shared plan. To stop charges permanently, delete the app and its plan, or delete the resource group if it contains only this deployment.
+
+App Service supplies `PORT`; the template sets `HOST=0.0.0.0` so Azure can reach the server. Local runs still bind only to `127.0.0.1` by default. The deployed server needs outbound HTTPS access to Microsoft for the catalog. The deployment check verifies the homepage, not upstream catalog availability.
+
 ## Official catalog connection
 
 The server downloads **https://aka.ms/ignite2026-session-info**, the Ignite 2026 JSON endpoint configured in [Microsoft's events CLI](https://github.com/microsoft/Build-CLI/blob/main/cli/src/config.ts). It follows Microsoft's redirects and loads the full array rather than a hardcoded selection or one search-results page. There is no account sign-in or API key.
