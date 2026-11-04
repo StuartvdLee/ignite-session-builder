@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10172a">
+    <meta name="description" content="Find Microsoft Ignite sessions for your data and AI estate goals.">
+    <title>Data + AI Trailfinder | Ignite 2026</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" type="module"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="wordmark" href="#" aria-label="Data and AI Trailfinder home">
+        <span class="wordmark-icon" aria-hidden="true">✳</span>
+        <span>IGNITE <span class="wordmark-light">2026</span></span>
+      </a>
+      <button class="mode-switch" id="mode-switch" type="button" aria-pressed="false">
+        <span aria-hidden="true">✦</span> I'm the MVP
+      </button>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="eyebrow"><span class="live-dot"></span> DATA &amp; AI SESSION FINDER</div>
+        <h1 id="page-title">Find your <span>Ignite path.</span></h1>
+        <p class="hero-copy">A few quick picks. A smarter shortlist. Let’s find the sessions that fit what you’re here to build.</p>
+        <div class="hero-note"><span aria-hidden="true">✳</span> Build a unified, governed data and AI estate</div>
+      </section>
+
+      <section class="catalog-connection" id="catalog-connection" data-state="loading" aria-label="Official catalog connection">
+        <div class="catalog-toolbar">
+          <div>
+            <p id="catalog-status" role="status">Connecting to Microsoft's full Ignite 2026 session catalog...</p>
+            <p id="catalog-details">Run the app with npm start to load the official catalog.</p>
+          </div>
+          <button id="refresh-catalog" class="text-button" type="button" disabled>Refresh catalog</button>
+        </div>
+        <details class="catalog-import">
+          <summary>Network restricted? Import the official catalog JSON</summary>
+          <p>Download the <a href="https://aka.ms/ignite2026-session-info" target="_blank" rel="noreferrer">Microsoft Ignite 2026 session feed</a> as JSON, then select that file. Imported files are labeled as snapshots, not live data. The app cannot verify a selected file's provenance or event year.</p>
+          <label for="catalog-file">Official catalog JSON file</label>
+          <input id="catalog-file" type="file" accept=".json,application/json">
+        </details>
+      </section>
+
+      <section class="quiz-shell" id="quiz-shell" aria-label="Session recommendation quiz">
+        <div class="quiz-head">
+          <div class="step-label" id="step-label">YOUR STARTING POINT</div>
+          <div class="progress-label" id="progress-label">01 <span>/ 03</span></div>
+        </div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="quiz-content" id="quiz-content" aria-live="polite"></div>
+        <div class="quiz-footer" id="quiz-footer">
+          <button class="back-button" id="back-button" type="button" hidden>← Back</button>
+          <span class="footer-hint" id="footer-hint">Pick the answer that feels most like you</span>
+          <button class="next-button" id="next-button" type="button" disabled>Next <span aria-hidden="true">→</span></button>
+        </div>
+      </section>
+
+      <section class="moderator-panel" id="moderator-panel" hidden aria-labelledby="moderator-title">
+        <div class="moderator-intro">
+          <div class="moderator-icon" aria-hidden="true">✦</div>
+          <div>
+            <div class="eyebrow">MVP HOST MODE</div>
+            <h2 id="moderator-title">Make it a great conversation.</h2>
+            <p>Use a question to uncover what someone really wants from Ignite, then point them toward a session path.</p>
+          </div>
+        </div>
+        <div class="prompt-card">
+          <div class="prompt-label">TRY THIS ICEBREAKER</div>
+          <p id="icebreaker">What’s one thing you wish your data could do for your AI projects today?</p>
+          <button id="shuffle-prompt" class="text-button" type="button">Another question <span aria-hidden="true">↻</span></button>
+        </div>
+        <div class="moderator-actions">
+          <button id="show-all-sessions" class="next-button" type="button" disabled>Explore the full catalog <span aria-hidden="true">→</span></button>
+          <button id="back-to-quiz" class="text-button" type="button">Back to the quiz</button>
+        </div>
+      </section>
+
+      <section class="featured-library" id="featured-library" hidden aria-labelledby="library-title">
+        <div class="results-heading">
+          <div>
+            <div class="eyebrow">OFFICIAL IGNITE CATALOG</div>
+            <h2 id="library-title">Explore the session catalog</h2>
+          </div>
+          <button id="hide-library" class="text-button" type="button">Hide sessions</button>
+        </div>
+        <div class="library-filters">
+          <label for="library-search">Search sessions, products, or speakers
+            <input id="library-search" type="search" placeholder="Fabric, Purview, Databricks...">
+          </label>
+          <label for="library-scope">Catalog scope
+            <select id="library-scope">
+              <option value="data-ai">Data &amp; AI</option>
+              <option value="all">Full catalog</option>
+            </select>
+          </label>
+        </div>
+        <p id="library-count" class="catalog-note" role="status"></p>
+        <div class="session-list" id="library-list"></div>
+        <button id="more-library" class="text-button" type="button" hidden>Show more sessions</button>
+      </section>
+
+      <section class="results" id="results" hidden aria-labelledby="results-title" aria-live="polite">
+        <div class="results-heading">
+          <div>
+            <div class="eyebrow">YOUR IGNITE SHORTLIST</div>
+            <h2 id="results-title">Your next steps start here.</h2>
+            <p id="results-summary"></p>
+          </div>
+          <button class="text-button" id="retake-button" type="button">Retake quiz <span aria-hidden="true">↻</span></button>
+        </div>
+        <div class="session-list" id="recommendation-list"></div>
+        <button id="more-recommendations" class="text-button" type="button" hidden>Show more matches</button>
+        <p class="catalog-note">Session details and availability can change. Check the official Ignite catalog before adding anything to your schedule.</p>
+      </section>
+
+      <section class="catalog-footnote">
+        <span aria-hidden="true">ⓘ</span>
+        <p>Recommendations are matched to your interests, not session times. Always check the <a href="https://ignite.microsoft.com/en-US/sessions" target="_blank" rel="noreferrer">official Ignite catalog</a> for the latest details.</p>
+      </section>
+    </main>
+    <footer><span>Made for curious minds.</span><span>Microsoft Ignite 2026 · Data &amp; AI</span></footer>
+  </body>
+</html>
