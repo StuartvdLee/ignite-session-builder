@@ -113,6 +113,25 @@ h1 span {
 }
 .hero-note span { color: var(--violet); font-size: 14px; }
 
+.catalog-connection { margin-bottom: 20px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: rgba(15, 23, 42, 0.6); }
+.catalog-connection[data-state="error"] { border-color: var(--orange); }
+.catalog-toolbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.catalog-toolbar .text-button { flex: 0 0 auto; }
+#catalog-status { margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
+#catalog-details, .catalog-import { margin-bottom: 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.catalog-import { margin-top: 12px; }
+.catalog-import summary { cursor: pointer; color: #c4b5ff; }
+.catalog-import p { margin: 10px 0; }
+.catalog-import a { color: var(--cyan); }
+.catalog-import label { display: block; margin-bottom: 6px; }
+.catalog-import input { max-width: 100%; }
+.library-filters { display: flex; gap: 12px; margin-bottom: 12px; }
+.library-filters label { flex: 1; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.library-filters input, .library-filters select { display: block; width: 100%; margin-top: 6px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #10172a; color: var(--ink); font: inherit; }
+#library-count { margin: 0 0 12px; }
+.empty-state { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.text-button:disabled { opacity: 0.5; cursor: wait; }
+
 .quiz-shell, .moderator-panel, .featured-library, .results {
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -209,6 +228,7 @@ h1 span {
 .match-label { padding: 5px 8px; border-radius: 999px; background: rgba(102, 228, 209, 0.1); color: var(--cyan); font-size: 10px; font-weight: 600; }
 .session-card h3 { margin: 0 0 7px; font: 600 15px/1.35 "Space Grotesk", sans-serif; }
 .session-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.session-card .session-meta { margin-top: 8px; color: #c3cbe0; font-size: 10px; }
 .session-card .match-reason { margin-top: 8px; color: #a7dbd5; font-size: 10px; }
 .session-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -222,13 +242,15 @@ h1 span {
 .catalog-footnote a { color: #c4b5ff; }
 footer { width: min(100% - 36px, 760px); margin: 0 auto; padding: 0 0 24px; display: flex; justify-content: space-between; color: #67728d; font-size: 10px; }
 [hidden] { display: none !important; }
-button:focus-visible, a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
 @media (max-width: 580px) {
   .topbar { height: 64px; padding: 0 18px; }
   main { width: min(100% - 28px, 760px); }
   .hero { padding: 48px 0 27px; }
   .hero-copy { font-size: 14px; }
+  .catalog-toolbar, .library-filters { flex-direction: column; }
+  .library-filters label { width: 100%; }
   .quiz-shell { padding: 21px 18px 17px; }
   .quiz-content { min-height: 0; padding: 22px 0 24px; }
   .answer-grid { grid-template-columns: 1fr; gap: 8px; }

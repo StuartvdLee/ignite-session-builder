@@ -7,7 +7,7 @@
     <meta name="description" content="Find Microsoft Ignite sessions for your data and AI estate goals.">
     <title>Data + AI Trailfinder | Ignite 2026</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="app.js" defer></script>
+    <script src="app.js" type="module"></script>
   </head>
   <body>
     <header class="topbar">
@@ -26,6 +26,22 @@
         <h1 id="page-title">Find your <span>Ignite path.</span></h1>
         <p class="hero-copy">A few quick picks. A smarter shortlist. Let’s find the sessions that fit what you’re here to build.</p>
         <div class="hero-note"><span aria-hidden="true">✳</span> Build a unified, governed data and AI estate</div>
+      </section>
+
+      <section class="catalog-connection" id="catalog-connection" data-state="loading" aria-label="Official catalog connection">
+        <div class="catalog-toolbar">
+          <div>
+            <p id="catalog-status" role="status">Connecting to Microsoft's full Ignite 2026 session catalog...</p>
+            <p id="catalog-details">Run the app with npm start to load the official catalog.</p>
+          </div>
+          <button id="refresh-catalog" class="text-button" type="button" disabled>Refresh catalog</button>
+        </div>
+        <details class="catalog-import">
+          <summary>Network restricted? Import the official catalog JSON</summary>
+          <p>Download the <a href="https://aka.ms/ignite2026-session-info" target="_blank" rel="noreferrer">Microsoft Ignite 2026 session feed</a> as JSON, then select that file. Imported files are labeled as snapshots, not live data. The app cannot verify a selected file's provenance or event year.</p>
+          <label for="catalog-file">Official catalog JSON file</label>
+          <input id="catalog-file" type="file" accept=".json,application/json">
+        </details>
       </section>
 
       <section class="quiz-shell" id="quiz-shell" aria-label="Session recommendation quiz">
@@ -57,7 +73,7 @@
           <button id="shuffle-prompt" class="text-button" type="button">Another question <span aria-hidden="true">↻</span></button>
         </div>
         <div class="moderator-actions">
-          <button id="show-all-sessions" class="next-button" type="button">Explore all featured sessions <span aria-hidden="true">→</span></button>
+          <button id="show-all-sessions" class="next-button" type="button" disabled>Explore the full catalog <span aria-hidden="true">→</span></button>
           <button id="back-to-quiz" class="text-button" type="button">Back to the quiz</button>
         </div>
       </section>
@@ -65,12 +81,25 @@
       <section class="featured-library" id="featured-library" hidden aria-labelledby="library-title">
         <div class="results-heading">
           <div>
-            <div class="eyebrow">THE SESSION SHORTLIST</div>
-            <h2 id="library-title">Three trails into Data &amp; AI</h2>
+            <div class="eyebrow">OFFICIAL IGNITE CATALOG</div>
+            <h2 id="library-title">Explore the session catalog</h2>
           </div>
           <button id="hide-library" class="text-button" type="button">Hide sessions</button>
         </div>
+        <div class="library-filters">
+          <label for="library-search">Search sessions, products, or speakers
+            <input id="library-search" type="search" placeholder="Fabric, Purview, Databricks...">
+          </label>
+          <label for="library-scope">Catalog scope
+            <select id="library-scope">
+              <option value="data-ai">Data &amp; AI</option>
+              <option value="all">Full catalog</option>
+            </select>
+          </label>
+        </div>
+        <p id="library-count" class="catalog-note" role="status"></p>
         <div class="session-list" id="library-list"></div>
+        <button id="more-library" class="text-button" type="button" hidden>Show more sessions</button>
       </section>
 
       <section class="results" id="results" hidden aria-labelledby="results-title" aria-live="polite">
@@ -83,6 +112,7 @@
           <button class="text-button" id="retake-button" type="button">Retake quiz <span aria-hidden="true">↻</span></button>
         </div>
         <div class="session-list" id="recommendation-list"></div>
+        <button id="more-recommendations" class="text-button" type="button" hidden>Show more matches</button>
         <p class="catalog-note">Session details and availability can change. Check the official Ignite catalog before adding anything to your schedule.</p>
       </section>
 

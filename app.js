@@ -1,3 +1,5 @@
+import { CATALOG_URL, matchLabels, normalizeCatalog, rankSessions } from "./catalog.mjs";
+
 const questions = [
   {
     label: "YOUR STARTING POINT",
@@ -34,44 +36,6 @@ const questions = [
   }
 ];
 
-const sessions = [
-  {
-    id: "BRK346",
-    title: "Protect data and accelerate AI adoption with Microsoft Purview",
-    description: "Explore how Purview helps identify risk, protect sensitive data across Microsoft 365 and Copilot, and accelerate investigations for secure AI adoption.",
-    tags: ["govern", "protect", "ai"],
-    topics: ["Data protection", "Governance", "AI readiness"],
-    href: "https://ignite.microsoft.com/en-US/sessions/BRK346"
-  },
-  {
-    id: "BRK364",
-    title: "Powering AI with Azure Databricks, Foundry, Fabric, and Copilot",
-    description: "See how Databricks and Microsoft integrations connect OneLake, Fabric, Foundry, and Copilot Studio to activate trusted data in a governed, open estate.",
-    tags: ["unify", "integrate", "ai", "activate"],
-    topics: ["Microsoft Fabric", "Azure Databricks", "AI"],
-    href: "https://ignite.microsoft.com/en-US/sessions/BRK364"
-  },
-  {
-    id: "BRK352",
-    title: "Microsoft Fabric at scale: How we engineer reliability and security",
-    description: "Learn how Microsoft approaches Fabric development workflows, observability, governance, security, cost management, and reliability at scale.",
-    tags: ["scale", "operate", "govern"],
-    topics: ["Microsoft Fabric", "Reliability", "Operations"],
-    href: "https://ignite.microsoft.com/en-US/sessions/BRK352"
-  }
-];
-
-const matchLabels = {
-  unify: "Unified data",
-  integrate: "Integration",
-  govern: "Governance",
-  protect: "Data protection",
-  ai: "AI",
-  activate: "AI-ready data",
-  scale: "Scale",
-  operate: "Operations"
-};
-
 const icebreakers = [
   "What’s one thing you wish your data could do for your AI projects today?",
   "Where does your data journey get stuck: finding it, trusting it, or putting it to work?",
@@ -81,6 +45,11 @@ const icebreakers = [
 
 let currentStep = 0;
 const answers = Array(questions.length).fill(null);
+let sessions = [];
+let catalogReady = false;
+let requestVersion = 0;
+let libraryLimit = 20;
+let recommendationLimit = 8;
 
 const content = document.querySelector("#quiz-content");
 const nextButton = document.querySelector("#next-button");
@@ -94,6 +63,24 @@ const quizShell = document.querySelector("#quiz-shell");
 const moderatorPanel = document.querySelector("#moderator-panel");
 const modeSwitch = document.querySelector("#mode-switch");
 const library = document.querySelector("#featured-library");
+const catalogStatus = document.querySelector("#catalog-status");
+const catalogDetails = document.querySelector("#catalog-details");
+const refreshButton = document.querySelector("#refresh-catalog");
+const exploreButton = document.querySelector("#show-all-sessions");
+const librarySearch = document.querySelector("#library-search");
+const libraryScope = document.querySelector("#library-scope");
+const moreLibraryButton = document.querySelector("#more-library");
+const moreRecommendationsButton = document.querySelector("#more-recommendations");
+
+function escapeHtml(value) {
+  const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  return String(value).replace(/[&<>"']/g, (character) => entities[character]);
+}
+
+function updateNextButton() {
+  nextButton.disabled = answers[currentStep] === null ||
+    (currentStep === questions.length - 1 && !catalogReady);
+}
 
 function renderQuestion() {
   const question = questions[currentStep];
@@ -124,60 +111,148 @@ function renderQuestion() {
       content.querySelectorAll(".answer-option").forEach((option) => {
         option.setAttribute("aria-pressed", String(option === button));
       });
-      nextButton.disabled = false;
+      updateNextButton();
     });
   });
-  nextButton.disabled = answers[currentStep] === null;
+  updateNextButton();
 }
 
 function getRecommendations() {
   const chosenTags = answers.flatMap((answerIndex, questionIndex) =>
     answerIndex === null ? [] : questions[questionIndex].options[answerIndex].tags
   );
-  const scores = sessions.map((session) => ({
-    ...session,
-    score: session.tags.reduce((total, tag) => total + chosenTags.filter((chosen) => chosen === tag).length, 0),
-    matchedTags: session.tags.filter((tag) => chosenTags.includes(tag))
-  }));
-  return scores.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+  return rankSessions(sessions, chosenTags);
 }
 
 function sessionCard(session, index, recommendation = false) {
   const matchText = recommendation
-    ? index === 0 ? "Best fit" : session.score ? `${session.score} match signals` : "Related session"
-    : "Featured session";
+    ? index === 0 ? "Best interest match" : `${session.score} match signals`
+    : session.isDataAI ? "Data & AI" : "Official catalog";
+  const details = [session.type, session.level, session.speakers].filter(Boolean).join(" · ");
   return `
     <article class="session-card ${recommendation && index === 0 ? "top-match" : ""}">
       <div class="session-topline">
-        <span class="session-id">${session.id} · IGNITE 2026</span>
+        <span class="session-id">${escapeHtml(session.id)} · IGNITE 2026</span>
         <span class="match-label">${matchText}</span>
       </div>
-      <h3>${session.title}</h3>
-      <p>${session.description}</p>
+      <h3>${escapeHtml(session.title)}</h3>
+      <p>${escapeHtml(session.description || "No abstract is published in the catalog yet.")}</p>
+      ${details ? `<p class="session-meta">${escapeHtml(details)}</p>` : ""}
       ${recommendation && session.matchedTags.length
         ? `<p class="match-reason">Matched to your answers: ${session.matchedTags.map((tag) => matchLabels[tag]).join(" · ")}</p>`
         : ""}
       <div class="session-bottom">
-        <div class="tag-list">${session.topics.map((topic) => `<span class="tag">${topic}</span>`).join("")}</div>
-        <a class="session-link" href="${session.href}" target="_blank" rel="noreferrer">View in catalog <span aria-hidden="true">↗</span></a>
+        <div class="tag-list">${session.topics.slice(0, 5).map((topic) => `<span class="tag">${escapeHtml(topic)}</span>`).join("")}</div>
+        <a class="session-link" href="${escapeHtml(session.href)}" target="_blank" rel="noreferrer">${session.hasDirectLink ? "View session" : "Find in catalog"} <span aria-hidden="true">↗</span></a>
       </div>
+      ${session.hasDirectLink ? "" : '<p class="catalog-note">No direct session link is published in this record. Search the catalog using the session code above.</p>'}
     </article>`;
 }
 
-function showResults() {
+function renderRecommendations() {
   const recommendations = getRecommendations();
-  const top = recommendations[0];
-  const summaryBySession = {
-    BRK346: "Your picks point toward trustworthy AI and data protection.",
-    BRK364: "Your picks point toward connecting data platforms and activating trusted data with AI.",
-    BRK352: "Your picks point toward reliable, secure operations at scale."
-  };
-  document.querySelector("#results-summary").textContent = summaryBySession[top.id];
-  document.querySelector("#recommendation-list").innerHTML =
-    recommendations.map((session, index) => sessionCard(session, index, true)).join("");
+  const visible = recommendations.slice(0, recommendationLimit);
+  document.querySelector("#results-summary").textContent = catalogReady
+    ? recommendations.length
+      ? `${recommendations.length} Data & AI sessions match your answers. Showing ${visible.length}, ranked by topic overlap with your interests.`
+      : "No Data & AI sessions match these answers in the loaded catalog. Try different answers or explore the full catalog in MVP mode."
+    : "Recommendations are unavailable until a catalog is loaded. See the catalog connection above.";
+  document.querySelector("#recommendation-list").innerHTML = visible.map((session, index) =>
+    sessionCard(session, index, true)).join("");
+  moreRecommendationsButton.hidden = !catalogReady || visible.length >= recommendations.length;
+}
+
+function showResults() {
+  if (!catalogReady) return;
+  recommendationLimit = 8;
+  renderRecommendations();
   quizShell.hidden = true;
   results.hidden = false;
   results.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderLibrary() {
+  const query = librarySearch.value.trim().toLowerCase();
+  const matching = sessions.filter((session) =>
+    (libraryScope.value === "all" || session.isDataAI) &&
+    [session.id, session.title, session.description, session.speakers, ...session.topics]
+      .join(" ").toLowerCase().includes(query)
+  );
+  const visible = matching.slice(0, libraryLimit);
+  document.querySelector("#library-count").textContent = catalogReady
+    ? `${matching.length} sessions found · showing ${visible.length} of ${sessions.length} catalog sessions`
+    : "Load a catalog to explore sessions.";
+  document.querySelector("#library-list").innerHTML = visible.length
+    ? visible.map((session, index) => sessionCard(session, index)).join("")
+    : catalogReady ? '<p class="empty-state">No sessions match these filters. Try another search or choose the full catalog.</p>' : "";
+  moreLibraryButton.hidden = !catalogReady || visible.length >= matching.length;
+}
+
+function resetCatalogViews() {
+  sessions = [];
+  catalogReady = false;
+  moreRecommendationsButton.hidden = true;
+  exploreButton.disabled = true;
+  updateNextButton();
+  if (!results.hidden) renderRecommendations();
+  if (!library.hidden) renderLibrary();
+}
+
+function applyCatalog(catalog, importedName = null) {
+  sessions = catalog.sessions;
+  catalogReady = true;
+  catalogStatus.textContent = importedName
+    ? `Imported ${sessions.length} sessions from ${importedName}. This is a local snapshot, not a live connection.`
+    : `Connected to the official Ignite 2026 catalog · ${sessions.length} sessions`;
+  const dataCount = sessions.filter((session) => session.isDataAI).length;
+  const checkedAt = importedName ? "Imported" : "Fetched";
+  catalogDetails.textContent = `${dataCount} identified as Data & AI by catalog metadata and keywords. ${checkedAt} ${new Date(catalog.fetchedAt).toLocaleString()}.` +
+    (catalog.skippedCount ? ` ${catalog.skippedCount} records without a session code or title were excluded.` : "") +
+    (catalog.duplicateCount ? ` ${catalog.duplicateCount} duplicate records were removed.` : "");
+  document.querySelector("#catalog-connection").dataset.state = importedName ? "imported" : "connected";
+  refreshButton.disabled = false;
+  exploreButton.disabled = false;
+  updateNextButton();
+  libraryLimit = 20;
+  recommendationLimit = 8;
+  if (!results.hidden) renderRecommendations();
+  if (!library.hidden) renderLibrary();
+}
+
+function showCatalogError(error) {
+  console.error("Ignite catalog loading failed:", error);
+  resetCatalogViews();
+  catalogStatus.textContent = `Catalog unavailable: ${error.message}`;
+  catalogDetails.textContent = "No sample sessions are being substituted. Retry, or download the official JSON catalog and import it below.";
+  document.querySelector("#catalog-connection").dataset.state = "error";
+  refreshButton.disabled = false;
+}
+
+async function loadCatalog(refresh = false) {
+  const version = ++requestVersion;
+  resetCatalogViews();
+  catalogStatus.textContent = "Connecting to Microsoft's full Ignite 2026 session catalog...";
+  catalogDetails.textContent = "You can answer the quiz while the catalog loads.";
+  document.querySelector("#catalog-connection").dataset.state = "loading";
+  refreshButton.disabled = true;
+  try {
+    const response = await fetch(`/api/catalog${refresh ? "?refresh=1" : ""}`, {
+      signal: AbortSignal.timeout(35_000)
+    });
+    if (!response.headers.get("content-type")?.includes("application/json")) {
+      throw new Error("The catalog API is unavailable. Run this app with npm start, not a generic static server.");
+    }
+    const catalog = await response.json();
+    if (!response.ok) throw new Error(catalog.error || `Catalog request failed (HTTP ${response.status}).`);
+    if (catalog.event !== "ignite-2026" || catalog.source !== CATALOG_URL ||
+        !Array.isArray(catalog.sessions) || !catalog.sessions.length ||
+        !Number.isFinite(Date.parse(catalog.fetchedAt))) {
+      throw new Error("The server returned an invalid Ignite 2026 catalog.");
+    }
+    if (version === requestVersion) applyCatalog(catalog);
+  } catch (error) {
+    if (version === requestVersion) showCatalogError(error);
+  }
 }
 
 nextButton.addEventListener("click", () => {
@@ -219,10 +294,9 @@ document.querySelector("#shuffle-prompt").addEventListener("click", () => {
   document.querySelector("#icebreaker").textContent = icebreakers[promptIndex];
 });
 
-document.querySelector("#show-all-sessions").addEventListener("click", () => {
-  document.querySelector("#library-list").innerHTML = sessions.map((session, index) =>
-    sessionCard(session, index)
-  ).join("");
+exploreButton.addEventListener("click", () => {
+  libraryLimit = 20;
+  renderLibrary();
   library.hidden = false;
   library.scrollIntoView({ behavior: "smooth", block: "start" });
 });
@@ -234,7 +308,47 @@ document.querySelector("#hide-library").addEventListener("click", () => {
 document.querySelector("#back-to-quiz").addEventListener("click", () => {
   modeSwitch.setAttribute("aria-pressed", "false");
   moderatorPanel.hidden = true;
-  quizShell.scrollIntoView({ behavior: "smooth", block: "start" });
+  (quizShell.hidden ? results : quizShell).scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+refreshButton.addEventListener("click", () => loadCatalog(true));
+
+document.querySelector("#catalog-file").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const version = ++requestVersion;
+  resetCatalogViews();
+  refreshButton.disabled = true;
+  document.querySelector("#catalog-connection").dataset.state = "loading";
+  catalogStatus.textContent = "Reading catalog file...";
+  catalogDetails.textContent = "";
+  try {
+    if (file.size > 50 * 1024 * 1024) throw new Error("The catalog file must be smaller than 50 MB.");
+    const catalog = normalizeCatalog(JSON.parse(await file.text()));
+    if (version === requestVersion) {
+      applyCatalog({ ...catalog, fetchedAt: new Date().toISOString() }, file.name);
+    }
+  } catch (error) {
+    if (version === requestVersion) showCatalogError(error);
+  } finally {
+    event.target.value = "";
+  }
+});
+
+for (const filter of [librarySearch, libraryScope]) {
+  filter.addEventListener("input", () => {
+    libraryLimit = 20;
+    renderLibrary();
+  });
+}
+moreLibraryButton.addEventListener("click", () => {
+  libraryLimit += 20;
+  renderLibrary();
+});
+moreRecommendationsButton.addEventListener("click", () => {
+  recommendationLimit += 8;
+  renderRecommendations();
 });
 
 renderQuestion();
+loadCatalog();
