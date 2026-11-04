@@ -49,7 +49,7 @@ let sessions = [];
 let catalogReady = false;
 let requestVersion = 0;
 let libraryLimit = 20;
-let recommendationLimit = 8;
+let recommendationLimit = 10;
 
 const content = document.querySelector("#quiz-content");
 const homeLink = document.querySelector(".wordmark");
@@ -165,7 +165,7 @@ function renderRecommendations() {
 
 function showResults() {
   if (!catalogReady) return;
-  recommendationLimit = 8;
+  recommendationLimit = 10;
   renderRecommendations();
   quizShell.hidden = true;
   results.hidden = false;
@@ -227,7 +227,7 @@ function applyCatalog(catalog, importedName = null) {
   exploreButton.disabled = false;
   updateNextButton();
   libraryLimit = 20;
-  recommendationLimit = 8;
+  recommendationLimit = 10;
   if (!results.hidden) renderRecommendations();
   if (!library.hidden) renderLibrary();
 }
@@ -357,7 +357,7 @@ moreLibraryButton.addEventListener("click", () => {
   renderLibrary();
 });
 moreRecommendationsButton.addEventListener("click", () => {
-  recommendationLimit += 8;
+  recommendationLimit += 20;
   renderRecommendations();
 });
 
