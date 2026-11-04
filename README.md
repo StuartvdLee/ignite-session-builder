@@ -2,7 +2,7 @@
 
 A lightweight recommendation quiz for a Microsoft Ignite 2026 Data & AI conversation, connected to Microsoft's full session catalog. No build step or dependencies are required.
 
-The three-question quiz ranks Data & AI sessions by interests inferred from the official titles, abstracts, topics, and products. “I'm the MVP” opens moderator icebreakers and a searchable catalog with Data & AI and full-catalog views.
+The three-question quiz ranks Data & AI sessions by interests inferred from the official titles, abstracts, topics, and products. “I'm the MVP” opens moderator icebreakers; the catalog connection provides a searchable catalog with Data & AI and full-catalog views.
 
 ## Run on your computer
 

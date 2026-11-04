@@ -155,7 +155,7 @@ function renderRecommendations() {
   document.querySelector("#results-summary").textContent = catalogReady
     ? recommendations.length
       ? `${recommendations.length} Data & AI sessions match your answers. Showing ${visible.length}, ranked by topic overlap with your interests.`
-      : "No Data & AI sessions match these answers in the loaded catalog. Try different answers or explore the full catalog in MVP mode."
+      : "No Data & AI sessions match these answers in the loaded catalog. Try different answers or explore the full catalog below."
     : "Recommendations are unavailable until a catalog is loaded. See the catalog connection above.";
   document.querySelector("#recommendation-list").innerHTML = visible.map((session, index) =>
     sessionCard(session, index, true)).join("");
