@@ -52,6 +52,7 @@ let libraryLimit = 20;
 let recommendationLimit = 8;
 
 const content = document.querySelector("#quiz-content");
+const homeLink = document.querySelector(".wordmark");
 const nextButton = document.querySelector("#next-button");
 const backButton = document.querySelector("#back-button");
 const stepLabel = document.querySelector("#step-label");
@@ -171,6 +172,18 @@ function showResults() {
   results.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function startNewQuestionnaire() {
+  currentStep = 0;
+  answers.fill(null);
+  results.hidden = true;
+  quizShell.hidden = false;
+  library.hidden = true;
+  modeSwitch.setAttribute("aria-pressed", "false");
+  moderatorPanel.hidden = true;
+  renderQuestion();
+  quizShell.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function renderLibrary() {
   const query = librarySearch.value.trim().toLowerCase();
   const matching = sessions.filter((session) =>
@@ -272,14 +285,12 @@ backButton.addEventListener("click", () => {
   }
 });
 
-document.querySelector("#retake-button").addEventListener("click", () => {
-  currentStep = 0;
-  answers.fill(null);
-  results.hidden = true;
-  quizShell.hidden = false;
-  renderQuestion();
-  quizShell.scrollIntoView({ behavior: "smooth", block: "start" });
+homeLink.addEventListener("click", (event) => {
+  event.preventDefault();
+  startNewQuestionnaire();
 });
+
+document.querySelector("#retake-button").addEventListener("click", startNewQuestionnaire);
 
 modeSwitch.addEventListener("click", () => {
   const isActive = modeSwitch.getAttribute("aria-pressed") !== "true";
