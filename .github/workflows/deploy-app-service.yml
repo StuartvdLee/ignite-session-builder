@@ -1,0 +1,81 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-app-service-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate configuration
+        shell: bash
+        run: |
+          : "${AZURE_RESOURCE_GROUP:?Set the AZURE_RESOURCE_GROUP repository variable}"
+          : "${AZURE_WEBAPP_NAME:?Set the AZURE_WEBAPP_NAME repository variable}"
+
+      - name: Run tests
+        run: npm test
+
+      - name: Package application
+        run: |
+          zip "$RUNNER_TEMP/app.zip" \
+            package.json server.mjs catalog-service.mjs catalog.mjs \
+            index.html app.js styles.css
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Provision Basic B1 App Service
+        id: provision
+        shell: bash
+        run: |
+          hostname=$(az deployment group create \
+            --name "trailfinder-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --template-file infra/app-service.bicep \
+            --parameters appName="$AZURE_WEBAPP_NAME" \
+            --query properties.outputs.hostname.value \
+            --output tsv)
+          echo "hostname=$hostname" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy application
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ${{ runner.temp }}/app.zip
+
+      - name: Check deployed application
+        env:
+          APP_HOSTNAME: ${{ steps.provision.outputs.hostname }}
+        run: |
+          curl --fail --silent --show-error --retry 12 --retry-all-errors \
+            --retry-delay 10 --connect-timeout 10 --max-time 30 \
+            "https://${APP_HOSTNAME}/" --output /dev/null
