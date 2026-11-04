@@ -28,22 +28,6 @@
         <div class="hero-note"><span aria-hidden="true">✳</span> Build a unified, governed data and AI estate</div>
       </section>
 
-      <section class="catalog-connection" id="catalog-connection" data-state="loading" aria-label="Official catalog connection">
-        <div class="catalog-toolbar">
-          <div>
-            <p id="catalog-status" role="status">Connecting to Microsoft's full Ignite 2026 session catalog...</p>
-            <p id="catalog-details">Run the app with npm start to load the official catalog.</p>
-          </div>
-          <button id="refresh-catalog" class="text-button" type="button" disabled>Refresh catalog</button>
-        </div>
-        <details class="catalog-import">
-          <summary>Network restricted? Import the official catalog JSON</summary>
-          <p>Download the <a href="https://aka.ms/ignite2026-session-info" target="_blank" rel="noreferrer">Microsoft Ignite 2026 session feed</a> as JSON, then select that file. Imported files are labeled as snapshots, not live data. The app cannot verify a selected file's provenance or event year.</p>
-          <label for="catalog-file">Official catalog JSON file</label>
-          <input id="catalog-file" type="file" accept=".json,application/json">
-        </details>
-      </section>
-
       <section class="quiz-shell" id="quiz-shell" aria-label="Session recommendation quiz">
         <div class="quiz-head">
           <div class="step-label" id="step-label">YOUR STARTING POINT</div>
@@ -119,6 +103,22 @@
       <section class="catalog-footnote">
         <span aria-hidden="true">ⓘ</span>
         <p>Recommendations are matched to your interests, not session times. Always check the <a href="https://ignite.microsoft.com/en-US/sessions" target="_blank" rel="noreferrer">official Ignite catalog</a> for the latest details.</p>
+      </section>
+
+      <section class="catalog-connection" id="catalog-connection" data-state="loading" aria-label="Official catalog connection">
+        <div class="catalog-toolbar">
+          <div>
+            <p id="catalog-status" role="status">Connecting to Microsoft's full Ignite 2026 session catalog...</p>
+            <p id="catalog-details">Run the app with npm start to load the official catalog.</p>
+          </div>
+          <button id="refresh-catalog" class="text-button" type="button" disabled>Refresh catalog</button>
+        </div>
+        <details class="catalog-import">
+          <summary>Network restricted? Import the official catalog JSON</summary>
+          <p>Download the <a href="https://aka.ms/ignite2026-session-info" target="_blank" rel="noreferrer">Microsoft Ignite 2026 session feed</a> as JSON, then select that file. Imported files are labeled as snapshots, not live data. The app cannot verify a selected file's provenance or event year.</p>
+          <label for="catalog-file">Official catalog JSON file</label>
+          <input id="catalog-file" type="file" accept=".json,application/json">
+        </details>
       </section>
     </main>
     <footer><span>Made for curious minds.</span><span>Microsoft Ignite 2026 · Data &amp; AI</span></footer>
