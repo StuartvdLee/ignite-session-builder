@@ -126,7 +126,7 @@ test("each technology displays its corresponding bundled visual on both question
       options.forEach((option, index) => {
         assert.ok(visualIds.has(option.visual), `Missing visual for ${option.title}`);
         assert.ok(buttons[index].includes(`<strong>${option.title}</strong>`));
-        assert.ok(buttons[index].includes(`href="/assets/technology-icons.svg#${option.visual}"`));
+        assert.ok(buttons[index].includes(`href="#${option.visual}"`));
         assert.match(buttons[index], /class="answer-icon answer-visual" aria-hidden="true"/);
       });
     }
@@ -143,7 +143,7 @@ test("GitHub Copilot and Fabric choices show their product logos", async () => {
     await get("#next-button").emit("click");
     const button = get("#quiz-content").innerHTML.split(/(?=<button class="answer-option")/)
       .find((html) => html.includes(`<strong>${title}</strong>`));
-    assert.ok(button?.includes(`href="/assets/technology-icons.svg#${visual}"`));
+    assert.ok(button?.includes(`href="#${visual}"`));
   }
 });
 
