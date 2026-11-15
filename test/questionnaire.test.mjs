@@ -154,6 +154,7 @@ test("technology question allows multiple choices and matches sessions for any s
   await get("#quiz-content").buttons[2].emit("click");
   await get("#next-button").emit("click");
 
+  assert.match(get("#quiz-content").innerHTML, /Which technologies would you like to focus on\?/);
   assert.match(get("#quiz-content").innerHTML, /Choose one or more/);
   assert.equal(get("#footer-hint").textContent, "Select one or more technologies");
   await get("#quiz-content").buttons[1].emit("click");

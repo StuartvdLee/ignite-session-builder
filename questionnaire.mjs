@@ -93,7 +93,7 @@ export function getQuestions(scope, firstAnswer = null) {
     startingQuestion,
     {
       label: "YOUR FOCUS",
-      title: "Which technology would you like to focus on?",
+      title: "Which technologies would you like to focus on?",
       description: "Choose one or more specific technologies within your starting topic. Matches can focus on any technology you select.",
       options: path.focuses.map((key) => focuses[key])
     },
