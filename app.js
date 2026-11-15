@@ -6,13 +6,6 @@ const isDataAI = scope === "data-ai";
 const scopeLabel = isDataAI ? "Data & AI" : "Ignite 2026";
 let questions = getQuestions(scope);
 
-const icebreakers = [
-  isDataAI ? "What’s one thing you wish your data could do for your AI projects today?" : "What’s one challenge you hope Ignite 2026 can help you solve?",
-  isDataAI ? "Where does your data journey get stuck: finding it, trusting it, or putting it to work?" : "Where would new technology make the biggest difference for your team?",
-  "If you could bring one idea home from Ignite, what would it help your team do?",
-  isDataAI ? "What’s a question about data or AI you hope to leave Ignite able to answer?" : "What’s a question you hope to leave Ignite able to answer?"
-];
-
 let currentStep = 0;
 const answers = Array(questions.length).fill(null);
 let sessions = [];
@@ -31,8 +24,6 @@ const progressFill = document.querySelector("#progress-fill");
 const footerHint = document.querySelector("#footer-hint");
 const results = document.querySelector("#results");
 const quizShell = document.querySelector("#quiz-shell");
-const moderatorPanel = document.querySelector("#moderator-panel");
-const modeSwitch = document.querySelector("#mode-switch");
 const library = document.querySelector("#featured-library");
 const catalogStatus = document.querySelector("#catalog-status");
 const catalogDetails = document.querySelector("#catalog-details");
@@ -172,8 +163,6 @@ function startNewQuestionnaire() {
   results.hidden = true;
   quizShell.hidden = false;
   library.hidden = true;
-  modeSwitch.setAttribute("aria-pressed", "false");
-  moderatorPanel.hidden = true;
   renderQuestion();
   quizShell.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -289,19 +278,6 @@ homeLink.addEventListener("click", (event) => {
 
 document.querySelector("#retake-button").addEventListener("click", startNewQuestionnaire);
 
-modeSwitch.addEventListener("click", () => {
-  const isActive = modeSwitch.getAttribute("aria-pressed") !== "true";
-  modeSwitch.setAttribute("aria-pressed", String(isActive));
-  moderatorPanel.hidden = !isActive;
-  if (isActive) moderatorPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-});
-
-let promptIndex = 0;
-document.querySelector("#shuffle-prompt").addEventListener("click", () => {
-  promptIndex = (promptIndex + 1) % icebreakers.length;
-  document.querySelector("#icebreaker").textContent = icebreakers[promptIndex];
-});
-
 exploreButton.addEventListener("click", () => {
   libraryLimit = 20;
   renderLibrary();
@@ -311,12 +287,6 @@ exploreButton.addEventListener("click", () => {
 
 document.querySelector("#hide-library").addEventListener("click", () => {
   library.hidden = true;
-});
-
-document.querySelector("#back-to-quiz").addEventListener("click", () => {
-  modeSwitch.setAttribute("aria-pressed", "false");
-  moderatorPanel.hidden = true;
-  (quizShell.hidden ? results : quizShell).scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 refreshButton.addEventListener("click", () => loadCatalog(true));
@@ -359,6 +329,5 @@ moreRecommendationsButton.addEventListener("click", () => {
   renderRecommendations();
 });
 
-document.querySelector("#icebreaker").textContent = icebreakers[0];
 renderQuestion();
 loadCatalog();

@@ -40,7 +40,7 @@ async function openQuiz(scope) {
     body: { dataset: { scope } },
     querySelector(selector) {
       if (!elements.has(selector)) {
-        elements.set(selector, element(["#results", "#featured-library", "#moderator-panel"].includes(selector)));
+        elements.set(selector, element(["#results", "#featured-library"].includes(selector)));
       }
       return elements.get(selector);
     }
