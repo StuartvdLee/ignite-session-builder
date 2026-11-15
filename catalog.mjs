@@ -107,6 +107,13 @@ export function normalizeCatalog(raw) {
     const tags = Object.entries(interestPatterns)
       .filter(([, pattern]) => pattern.test(searchText))
       .map(([tag]) => tag);
+    const titleTags = Object.entries(interestPatterns)
+      .filter(([, pattern]) => pattern.test(title))
+      .map(([tag]) => tag);
+    const products = displayValues(record.product).join(" ");
+    const productTags = Object.entries(interestPatterns)
+      .filter(([, pattern]) => pattern.test(products))
+      .map(([tag]) => tag);
 
     sessions.push({
       key,
@@ -115,6 +122,8 @@ export function normalizeCatalog(raw) {
       description,
       topics,
       tags,
+      titleTags,
+      productTags,
       isDataAI: dataAIPattern.test(searchText),
       speakers: displayValues(record.speakerNames).join(", "),
       level: displayValues(record.sessionLevel).join(", "),
@@ -134,15 +143,26 @@ export function normalizeCatalog(raw) {
   return { sessions, recordCount: raw.length, skippedCount, duplicateCount };
 }
 
-export function rankSessions(sessions, chosenTags, scope = "all") {
+export function rankSessions(sessions, answerGroups, scope = "all") {
+  if (!answerGroups.length || answerGroups.some((group) => !group?.length)) return [];
+  const groups = answerGroups.map((group) => [...new Set(group)]);
+  const chosenTags = [...new Set(groups.flat())];
   return sessions
     .filter((session) => scope !== "data-ai" || session.isDataAI)
+    .filter((session) =>
+      groups.every((group) => group.some((tag) => session.tags.includes(tag))) &&
+      groups[0].some((tag) => session.titleTags.includes(tag) || session.productTags.includes(tag))
+    )
     .map((session) => ({
       ...session,
-      score: session.tags.reduce((total, tag) =>
-        total + chosenTags.filter((chosen) => chosen === tag).length, 0),
+      score: groups.reduce((total, group, index) => {
+        const coverage = group.reduce((sum, tag) => sum + (
+          session.titleTags.includes(tag) ? 3 : session.productTags.includes(tag) ? 2 :
+            session.tags.includes(tag) ? 1 : 0
+        ), 0) / (3 * group.length);
+        return total + coverage * (groups.length - index);
+      }, 0),
       matchedTags: session.tags.filter((tag) => chosenTags.includes(tag))
     }))
-    .filter((session) => session.score > 0)
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id) || a.key.localeCompare(b.key));
 }

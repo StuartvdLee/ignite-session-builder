@@ -89,22 +89,49 @@ test("rejects malformed or empty feeds instead of returning sample sessions", ()
 
 test("matches Data & AI interests and excludes unrelated governance content", () => {
   const { sessions } = normalizeCatalog(records);
-  const governance = rankSessions(sessions, ["govern", "protect", "protect"], "data-ai");
+  const governance = rankSessions(sessions, [["govern", "protect", "protect"]], "data-ai");
   assert.equal(governance[0].id, "TEST-GOVERN");
-  assert.equal(governance[0].score, 3);
+  assert.ok(governance[0].score > 0);
   assert.deepEqual(governance[0].matchedTags, ["govern", "protect"]);
   assert.ok(!governance.some((session) => session.id === "TEST-OTHER"));
-  assert.equal(rankSessions(sessions, ["unify", "integrate"])[0].id, "TEST-DATA");
-  assert.equal(rankSessions(sessions, ["operate", "scale"])[0].id, "TEST-SCALE");
+  assert.equal(rankSessions(sessions, [["unify", "integrate"]])[0].id, "TEST-DATA");
+  assert.equal(rankSessions(sessions, [["operate", "scale"]])[0].id, "TEST-SCALE");
   assert.deepEqual(rankSessions(sessions, []), []);
 });
 
 test("all-session questionnaire recommends non-Data & AI content; focused quiz excludes it", () => {
   const { sessions } = normalizeCatalog(records);
   const securityTags = allQuestions[0].options.find((option) => option.tags.includes("security")).tags;
-  const all = rankSessions(sessions, securityTags);
+  const all = rankSessions(sessions, [securityTags]);
   assert.ok(all.some((session) => session.id === "TEST-OTHER"));
-  assert.ok(!rankSessions(sessions, securityTags, "data-ai").some((session) => session.id === "TEST-OTHER"));
+  assert.ok(!rankSessions(sessions, [securityTags], "data-ai").some((session) => session.id === "TEST-OTHER"));
+});
+
+test("requires every answer and a title or product match for the primary interest", () => {
+  const { sessions } = normalizeCatalog([
+    { sessionCode: "GOOD", title: "Secure apps with Defender", description: "Develop AI agents." },
+    { sessionCode: "PRODUCT", title: "Build reliable platforms", product: "Microsoft Defender", description: "Develop AI agents." },
+    { sessionCode: "ONE-ANSWER", title: "Endpoint security", description: "Manage devices." },
+    { sessionCode: "INCIDENTAL", title: "AI apps with GitHub", description: "Learn about security too." },
+    { sessionCode: "UMBRELLA", title: "Team collaboration", topic: "Cloud & AI", description: "Develop secure apps." }
+  ]);
+  const matches = rankSessions(sessions, [["security"], ["develop"], ["ai"]]);
+  assert.deepEqual(matches.map((session) => session.id), ["GOOD", "PRODUCT"]);
+  assert.ok(matches[0].score > matches[1].score);
+  assert.deepEqual(matches[0].matchedTags.sort(), ["ai", "develop", "security"]);
+  const broader = rankSessions(sessions, [["security"]]);
+  assert.ok(broader.some((session) => session.id === "ONE-ANSWER"));
+  assert.ok(matches.every((session) => broader.some((candidate) => candidate.key === session.key)));
+  assert.deepEqual(rankSessions(sessions, [["security"], [], ["ai"]]), []);
+  assert.deepEqual(rankSessions(sessions, [["cloud"], ["unify"]]), []);
+});
+
+test("normalizes answer coverage so duplicate tags cannot inflate the ranking", () => {
+  const { sessions } = normalizeCatalog(records);
+  assert.deepEqual(
+    rankSessions(sessions, [["govern", "protect", "protect"]]),
+    rankSessions(sessions, [["govern", "protect"]])
+  );
 });
 
 test("bundled catalogs load offline and preserve the complete raw Data & AI subset", async () => {
@@ -129,7 +156,7 @@ test("bundled catalogs load offline and preserve the complete raw Data & AI subs
   for (const [questions, scope] of [[allQuestions, "all"], [dataAIQuestions, "data-ai"]]) {
     for (const question of questions) {
       for (const option of question.options) {
-        assert.ok(rankSessions(full.sessions, option.tags, scope).length > 0, option.title);
+        assert.ok(rankSessions(full.sessions, [option.tags], scope).length > 0, option.title);
       }
     }
   }

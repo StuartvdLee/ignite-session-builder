@@ -89,15 +89,15 @@ function renderQuestion() {
 }
 
 function getRecommendations() {
-  const chosenTags = answers.flatMap((answerIndex, questionIndex) =>
+  const answerGroups = answers.map((answerIndex, questionIndex) =>
     answerIndex === null ? [] : questions[questionIndex].options[answerIndex].tags
   );
-  return rankSessions(sessions, chosenTags, scope);
+  return rankSessions(sessions, answerGroups, scope);
 }
 
 function sessionCard(session, index, recommendation = false) {
   const matchText = recommendation
-    ? index === 0 ? "Best interest match" : `${session.score} match signals`
+    ? index === 0 ? "Best interest match" : `Matches all ${questions.length} answers`
     : session.isDataAI ? "Data & AI" : "Official catalog";
   const details = [session.type, session.level, session.speakers].filter(Boolean).join(" · ");
   return `
@@ -125,8 +125,8 @@ function renderRecommendations() {
   const visible = recommendations.slice(0, recommendationLimit);
   document.querySelector("#results-summary").textContent = catalogReady
     ? recommendations.length
-      ? `${recommendations.length} ${scopeLabel} sessions match your answers. Showing ${visible.length}, ranked by topic overlap with your interests.`
-      : `No ${scopeLabel} sessions match these answers in the loaded catalog. Try different answers or explore the catalog below.`
+      ? `${recommendations.length} ${scopeLabel} sessions match all ${questions.length} answers, with your main interest in the title or products. Showing ${visible.length}, ranked by strength of evidence.`
+      : `No ${scopeLabel} sessions match all ${questions.length} answers with a strong main-interest match. Try different answers or explore the unfiltered catalog below.`
     : "Recommendations are unavailable until a catalog is loaded. See the catalog connection above.";
   document.querySelector("#recommendation-list").innerHTML = visible.map((session, index) =>
     sessionCard(session, index, true)).join("");

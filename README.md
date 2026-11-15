@@ -4,6 +4,8 @@ A lightweight, offline-ready recommendation quiz for **all of Microsoft Ignite 2
 
 The homepage's three-question quiz covers AI, data, security, cloud, Microsoft 365, developer tools and business transformation across the full catalog. **[/data-ai](http://127.0.0.1:3000/data-ai)** keeps the focused Data & AI questionnaire and explorer. Both pages rank sessions by interests inferred from official titles, abstracts, topics, and products. “I'm the MVP” opens moderator icebreakers.
 
+On this branch, the existing questions use **strict matching**: sessions must match every answer, and the first answer needs evidence in the session title or named products, not just an abstract or a generic topic like “Cloud & AI.” Ranking favors title evidence over products and other metadata, weights earlier answers more heavily, and normalizes by the number of interests in each answer. There is no arbitrary result cap or fallback to loosely related sessions; the explorer remains unfiltered. Broad or overlapping answers can still return many genuinely matching sessions.
+
 ## Run on your computer
 
 With [Node.js](https://nodejs.org/) 18 or newer installed, download or check out the app, open a terminal in its folder, and run:
