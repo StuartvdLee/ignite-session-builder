@@ -355,7 +355,7 @@ test("both questionnaires embed the full icon sprite for local SVG references", 
   }
 });
 
-test("pages select distinct questionnaires and APIs load their snapshots without a network", async (t) => {
+test("pages select distinct session finders and APIs load their snapshots without a network", async (t) => {
   const base = await serve(t, {
     loadCatalog: createBundledCatalogLoader({ loadLiveCatalog: async () => {
       assert.fail("Loading a bundled catalog must not contact Microsoft.");
@@ -364,7 +364,7 @@ test("pages select distinct questionnaires and APIs load their snapshots without
   const home = await (await fetch(base + "/")).text();
   const dataPage = await (await fetch(base + "/data-ai")).text();
   assert.match(home, /data-scope="all"/);
-  assert.match(home, /questionnaire for all of Microsoft Ignite 2026/);
+  assert.match(home, /Tell us what you’re exploring, and we’ll guide you to the Microsoft Ignite 2026 sessions that matter/);
   assert.match(home, /href="\/data-ai"/);
   assert.match(dataPage, /data-scope="data-ai"/);
   assert.match(dataPage, /href="\/"/);
