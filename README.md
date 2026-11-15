@@ -55,7 +55,7 @@ Merge the workflow to `main`, then push to `main` or run **Deploy to Azure App S
 
 The template creates `<AZURE_WEBAPP_NAME>-plan` with one B1 instance and Always On enabled. **Basic B1 is a paid tier**, charged while the plan exists, even without traffic. Use a new app name and a dedicated plan; every deployment reapplies B1 and the template's app settings, so do not point this at an unrelated existing app or shared plan. To stop charges permanently, delete the app and its plan, or delete the resource group if it contains only this deployment.
 
-App Service supplies `PORT`; the template sets `HOST=0.0.0.0` so Azure can reach the server. Local runs still bind only to `127.0.0.1` by default. The deployment package includes both pages and the offline snapshots. Outbound HTTPS access to Microsoft is needed only for catalog refreshes.
+App Service supplies `PORT`; the template sets `HOST=0.0.0.0` so Azure can reach the server. Local runs still bind only to `127.0.0.1` by default. The deployment package includes both pages, the favicon, and the offline snapshots. Outbound HTTPS access to Microsoft is needed only for catalog refreshes.
 
 ## Official catalog connection
 
