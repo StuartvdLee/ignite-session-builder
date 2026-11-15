@@ -2,7 +2,7 @@
 
 A lightweight, offline-ready recommendation quiz for **all of Microsoft Ignite 2026**. No build step or dependencies are required.
 
-The homepage's three-question quiz covers AI, data, security, cloud, Microsoft 365 and developer tools across the full catalog. **[/data-ai](http://127.0.0.1:3000/data-ai)** provides the focused Data & AI questionnaire and explorer. Both pages rank sessions by interests inferred from official titles, abstracts, topics, and products. “I'm the MVP” opens moderator icebreakers.
+The homepage's three-question quiz covers AI, data, security, cloud, Microsoft 365 and developer tools across the full catalog. **[/data-ai](http://127.0.0.1:3000/data-ai)** provides the focused Data & AI questionnaire and explorer. Both pages rank sessions by interests inferred from official titles, abstracts, topics, and products.
 
 Technology choices use locally bundled product logos. The server embeds the SVG sprite in each questionnaire page so Safari can render the logos' gradients and masks. Microsoft Cloud Product Icons were curated by [aidevme](https://github.com/aidevme/microsoft-cloud-product-icons), based on [DamoBird365](https://damobird365.com/), and adapted into an SVG sprite ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) for the collection). Other sources and license notices are included in the SVG. Product marks belong to their respective owners and may require permission for reuse.
 
