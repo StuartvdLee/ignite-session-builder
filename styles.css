@@ -223,6 +223,22 @@ h1 span {
 .results-heading p { max-width: 520px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
 .text-button { padding: 7px 0; font-size: 12px; }
 .text-button:hover, .back-button:hover { color: var(--cyan); }
+.more-results-button {
+  display: flex;
+  width: min(100%, 320px);
+  justify-content: center;
+  margin: 20px auto 0;
+  padding: 13px 20px;
+  border: 1px solid rgba(173, 145, 255, 0.55);
+  border-radius: 10px;
+  background: linear-gradient(105deg, var(--violet), #7eced2);
+  box-shadow: 0 6px 20px rgba(102, 228, 209, 0.12);
+  color: #10172a;
+  font-size: 13px;
+  font-weight: 700;
+  transition: filter 150ms ease, transform 150ms ease;
+}
+.more-results-button:hover { color: #10172a; filter: brightness(1.08); transform: translateY(-1px); }
 .results-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 18px; }
 .results-heading h2 { margin-top: 8px; }
 .session-list { display: grid; gap: 10px; }
