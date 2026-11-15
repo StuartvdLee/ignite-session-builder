@@ -257,7 +257,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 @media (min-width: 1024px) {
   main, footer { width: min(100% - 36px, 1100px); }
-  .answer-grid { grid-template-columns: repeat(3, 1fr); }
+  /* Use three columns only when the answers fill complete rows; otherwise keep 2 × 2. */
+  .answer-grid:has(> .answer-option:last-child:nth-child(3n)) { grid-template-columns: repeat(3, 1fr); }
   .session-list { grid-template-columns: repeat(2, 1fr); }
 }
 
