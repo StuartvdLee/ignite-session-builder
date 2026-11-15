@@ -49,7 +49,8 @@ function escapeHtml(value) {
 }
 
 function updateNextButton() {
-  nextButton.disabled = answers[currentStep] === null ||
+  const answer = answers[currentStep];
+  nextButton.disabled = (Array.isArray(answer) ? answer.length === 0 : answer === null) ||
     (currentStep === questions.length - 1 && !catalogReady);
 }
 
@@ -62,15 +63,19 @@ function renderQuestion() {
   nextButton.innerHTML = currentStep === questions.length - 1
     ? 'Show my sessions <span aria-hidden="true">✦</span>'
     : 'Next <span aria-hidden="true">→</span>';
-  footerHint.textContent = currentStep === 0
-    ? "Pick the answer that feels most like you"
-    : "Choose the closest fit";
+  footerHint.textContent = currentStep === 1
+    ? "Select one or more technologies"
+    : currentStep === 0
+      ? "Pick the answer that feels most like you"
+      : "Choose the closest fit";
   content.innerHTML = `
     <h2 id="question-title">${question.title}</h2>
     <p class="question-description">${question.description}</p>
     <div class="answer-grid" role="group" aria-labelledby="question-title">
       ${question.options.map((option, index) => `
-        <button class="answer-option" type="button" data-option="${index}" aria-pressed="${answers[currentStep] === index}">
+        <button class="answer-option" type="button" data-option="${index}" aria-pressed="${Array.isArray(answers[currentStep])
+          ? answers[currentStep].includes(index)
+          : answers[currentStep] === index}">
           <span class="answer-icon" aria-hidden="true">${option.icon}</span>
           <span class="answer-copy"><strong>${option.title}</strong><small>${option.detail}</small></span>
         </button>
@@ -79,11 +84,22 @@ function renderQuestion() {
   content.querySelectorAll(".answer-option").forEach((button) => {
     button.addEventListener("click", () => {
       const answer = Number(button.dataset.option);
-      if (answers[currentStep] !== answer) answers.fill(null, currentStep + 1);
-      answers[currentStep] = answer;
+      if (currentStep === 1) {
+        const selected = answers[currentStep] ?? [];
+        answers.fill(null, currentStep + 1);
+        answers[currentStep] = selected.includes(answer)
+          ? selected.filter((index) => index !== answer)
+          : [...selected, answer];
+      } else {
+        if (answers[currentStep] !== answer) answers.fill(null, currentStep + 1);
+        answers[currentStep] = answer;
+      }
       questions = getQuestions(scope, answers[0]);
       content.querySelectorAll(".answer-option").forEach((option) => {
-        option.setAttribute("aria-pressed", String(option === button));
+        const index = Number(option.dataset.option);
+        option.setAttribute("aria-pressed", String(Array.isArray(answers[currentStep])
+          ? answers[currentStep].includes(index)
+          : answers[currentStep] === index));
       });
       updateNextButton();
     });
@@ -92,8 +108,9 @@ function renderQuestion() {
 }
 
 function getRecommendations() {
-  const answerGroups = answers.map((answerIndex, questionIndex) =>
-    answerIndex === null ? [] : questions[questionIndex].options[answerIndex].tags
+  const answerGroups = answers.map((answer, questionIndex) =>
+    answer === null ? [] : (Array.isArray(answer) ? answer : [answer])
+      .flatMap((answerIndex) => questions[questionIndex].options[answerIndex].tags)
   );
   // The specific technology, not the broad starting topic, needs title/product evidence.
   return rankSessions(sessions, [answerGroups[1], answerGroups[0], answerGroups[2]], scope);
@@ -101,7 +118,7 @@ function getRecommendations() {
 
 function sessionCard(session, index, recommendation = false) {
   const matchText = recommendation
-    ? index === 0 ? "Best interest match" : `Matches all ${questions.length} answers`
+    ? index === 0 ? "Best interest match" : "Matches your selected interests"
     : session.isDataAI ? "Data & AI" : "Official catalog";
   const details = [session.type, session.level, session.speakers].filter(Boolean).join(" · ");
   return `

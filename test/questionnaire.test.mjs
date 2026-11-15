@@ -24,6 +24,9 @@ function element(hidden = false) {
       this.buttons = [...value.matchAll(/data-option="(\d+)"/g)].map((match) => {
         const button = element();
         button.dataset.option = match[1];
+        button.setAttribute("aria-pressed", value.match(
+          new RegExp(`data-option="${match[1]}" aria-pressed="(true|false)"`)
+        )?.[1] ?? "false");
         return button;
       });
     },
@@ -45,6 +48,7 @@ async function openQuiz(scope) {
   document.querySelector("#library-scope").value = scope;
   const records = [
     { sessionCode: "ENDPOINT", title: "Endpoint security with Intune", description: "Protect device identity and manage deployment." },
+    { sessionCode: "ENTRA", title: "Secure access with Entra identity", description: "Operate secure identity and deployment at scale." },
     { sessionCode: "DATA", title: "Purview data governance", description: "Protect sensitive data with compliance controls." }
   ];
   const catalog = {
@@ -143,4 +147,34 @@ test("specific product evidence excludes sessions that mention the focus only in
     rankSessions(sessions, [focus, primary, outcome]).map((session) => session.id),
     ["FOCUSED"]
   );
+});
+
+test("technology question allows multiple choices and matches sessions for any selected technology", async () => {
+  const { get } = await openQuiz("all");
+  await get("#quiz-content").buttons[2].emit("click");
+  await get("#next-button").emit("click");
+
+  assert.match(get("#quiz-content").innerHTML, /Choose one or more/);
+  assert.equal(get("#footer-hint").textContent, "Select one or more technologies");
+  await get("#quiz-content").buttons[1].emit("click");
+  await get("#quiz-content").buttons[3].emit("click");
+  assert.equal(get("#quiz-content").buttons[1].getAttribute("aria-pressed"), "true");
+  assert.equal(get("#quiz-content").buttons[3].getAttribute("aria-pressed"), "true");
+  assert.equal(get("#next-button").disabled, false);
+
+  await get("#quiz-content").buttons[1].emit("click");
+  assert.equal(get("#quiz-content").buttons[1].getAttribute("aria-pressed"), "false");
+  assert.equal(get("#next-button").disabled, false);
+  await get("#quiz-content").buttons[3].emit("click");
+  assert.equal(get("#next-button").disabled, true);
+  await get("#quiz-content").buttons[3].emit("click");
+  assert.equal(get("#next-button").disabled, false);
+  await get("#quiz-content").buttons[1].emit("click");
+  await get("#next-button").emit("click");
+  await get("#quiz-content").buttons[3].emit("click");
+  await get("#next-button").emit("click");
+
+  assert.match(get("#recommendation-list").innerHTML, /Endpoint security with Intune/);
+  assert.match(get("#recommendation-list").innerHTML, /Secure access with Entra identity/);
+  assert.doesNotMatch(get("#recommendation-list").innerHTML, /Purview data governance/);
 });
