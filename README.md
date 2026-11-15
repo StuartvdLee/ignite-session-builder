@@ -1,78 +1,17 @@
 # Ignite 2026 Trailfinder
 
-A lightweight, offline-ready recommendation quiz for **all of Microsoft Ignite 2026**. No build step or dependencies are required.
+Ignite 2026 Trailfinder helps you find conference sessions that fit your interests. Answer a few quick questions to get a personalized shortlist, or browse the catalog to find sessions, products, and speakers.
 
-The homepage's three-question quiz covers AI, data, security, cloud, Microsoft 365 and developer tools across the full catalog. **[/data-ai](http://127.0.0.1:3000/data-ai)** provides the focused Data & AI questionnaire and explorer. Both pages rank sessions by interests inferred from official titles, abstracts, topics, and products.
+This is an independent companion to Microsoft Ignite, not an official Microsoft product. Session information comes from the official Ignite catalog.
 
-Technology choices use locally bundled product logos. The server embeds the SVG sprite in each questionnaire page so Safari can render the logos' gradients and masks. Microsoft Cloud Product Icons were curated by [aidevme](https://github.com/aidevme/microsoft-cloud-product-icons), based on [DamoBird365](https://damobird365.com/), and adapted into an SVG sprite ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) for the collection). Other sources and license notices are included in the SVG. Product marks belong to their respective owners and may require permission for reuse.
+## Find sessions
 
-On this branch, **topic-specific follow-ups** ask for a technology and outcome based on the first answer. For example, AI leads to Foundry, Microsoft 365 Copilot, Copilot Studio or GitHub Copilot; security leads to Defender, Entra, Purview or Intune. Sessions must match all three choices, and the specific technology needs evidence in the title or named products, not just an abstract or generic topic. Ranking favors title evidence over products and other metadata, weights technology first, then topic and outcome, and normalizes by the number of interests in each answer. Changing an earlier choice clears downstream answers. There is no arbitrary result cap or fallback to loosely related sessions; the explorer remains unfiltered.
+- **Explore all sessions** to discover topics across AI, data, security, cloud, Microsoft 365, developer tools, and more.
+- **Explore Data & AI** for a focused session finder covering data and AI.
+- **Answer the questions** that best describe what you want to learn. Your answers help build a relevant shortlist.
+- **Browse the catalog** when you want to search for a particular session, product, or speaker.
+- **Retake the quiz** any time to explore a different path.
 
-## Run on your computer
+## Plan your Ignite
 
-With [Node.js](https://nodejs.org/) 18 or newer installed, download or check out the app, open a terminal in its folder, and run:
-
-```sh
-npm start
-```
-
-Open **http://127.0.0.1:3000/** in a browser on the same computer. No `npm install` is needed. Stop the server with Ctrl+C.
-
-Use `npm start`, not a generic static server or a direct `index.html` file: the local server provides the catalog API. **No internet connection is needed for either questionnaire or the session explorer**: the server loads the JSON snapshots committed in `data/`. Internet access is needed only for **Refresh catalog** and opening official session links. There are no external font or build dependencies.
-
-The server must run on your own computer for that address to work locally. Starting it in a remote workspace does not expose it on your computer.
-
-## Access a remote copy from your computer
-
-If you have SSH access to the remote workspace host, leave `npm start` running there and run this in a terminal **on your own computer**, replacing `USER@REMOTE_HOST` with your SSH connection:
-
-```sh
-ssh -N -L 3000:127.0.0.1:3000 USER@REMOTE_HOST
-```
-
-Keep the SSH terminal open, then open **http://127.0.0.1:3000/** locally. If local port 3000 is occupied, use `-L 3001:127.0.0.1:3000` and open port 3001 instead. No public exposure is required.
-
-## Deploy to Azure App Service (Basic B1)
-
-The [deployment workflow](.github/workflows/deploy-app-service.yml) runs on pushes to `main` or manually from the Actions tab. It runs the tests, provisions a dedicated **Linux Basic B1** App Service plan and Node.js 22 web app using [Bicep](infra/app-service.bicep), deploys the runtime files, and checks the public HTTPS homepage. No build or dependency installation is needed.
-
-### One-time Azure and GitHub setup
-
-1. Create an Azure resource group in a region that supports Linux App Service B1, for example `az group create --name ignite-trailfinder --location westeurope`. The workflow uses this existing resource group.
-2. Create a Microsoft Entra app registration and its service principal. Grant that identity **Contributor** on this resource group, not the entire subscription.
-3. Add a federated credential to the app registration for GitHub Actions with issuer `https://token.actions.githubusercontent.com`, audience `api://AzureADTokenExchange`, and subject `repo:StuartvdLee/ignite-session-builder:ref:refs/heads/main`. This permits deployments from `main`, including manual runs on that branch. Adjust the owner/repository if deploying a fork.
-4. In the repository's **Settings > Secrets and variables > Actions**, add the following:
-
-| Kind | Name | Value |
-| --- | --- | --- |
-| Secret | `AZURE_CLIENT_ID` | Entra app registration's application (client) ID |
-| Secret | `AZURE_TENANT_ID` | Azure directory (tenant) ID |
-| Secret | `AZURE_SUBSCRIPTION_ID` | Subscription containing the resource group |
-| Variable | `AZURE_RESOURCE_GROUP` | Existing resource group name, e.g. `ignite-trailfinder` |
-| Variable | `AZURE_WEBAPP_NAME` | Globally unique web app name, e.g. `your-org-ignite-trailfinder` |
-
-Merge the workflow to `main`, then push to `main` or run **Deploy to Azure App Service** manually with `main` selected. Azure provisions the app at `https://<AZURE_WEBAPP_NAME>.azurewebsites.net` (use the app's default hostname from Azure if it includes an additional generated suffix). Authentication uses OIDC; no publish profile or long-lived client secret is needed.
-
-The template creates `<AZURE_WEBAPP_NAME>-plan` with one B1 instance and Always On enabled. **Basic B1 is a paid tier**, charged while the plan exists, even without traffic. Use a new app name and a dedicated plan; every deployment reapplies B1 and the template's app settings, so do not point this at an unrelated existing app or shared plan. To stop charges permanently, delete the app and its plan, or delete the resource group if it contains only this deployment.
-
-App Service supplies `PORT`; the template sets `HOST=0.0.0.0` so Azure can reach the server. Local runs still bind only to `127.0.0.1` by default. The deployment package includes both pages, the favicon, and the offline snapshots. Outbound HTTPS access to Microsoft is needed only for catalog refreshes.
-
-## Official catalog connection
-
-The bundled snapshot was downloaded from **https://aka.ms/ignite2026-session-info** on **2026-11-15 at 00:37 UTC** (November 14 Pacific time). Microsoft's redirect resolves to its `ignite2026-prod` full-session JSON feed. There is no account sign-in or API key.
-
-- [`data/ignite-2026-all-sessions.json`](data/ignite-2026-all-sessions.json) contains all **1,512** original feed records; [`data/ignite-2026-data-ai-sessions.json`](data/ignite-2026-data-ai-sessions.json) contains the **524** records matching the existing Data & AI rules. Both are importable JSON arrays, not synthetic examples. Source URLs and timestamps are recorded in [`data/catalog-info.json`](data/catalog-info.json).
-- `/api/catalog` loads the bundled full catalog; `/api/catalog?scope=data-ai` loads the bundled subset. Neither contacts Microsoft. **Refresh catalog** explicitly requests a new live download with `refresh=1`, following redirects and loading the complete array before applying the page's scope. Reloading the page returns to the bundled snapshot.
-- The UI labels bundled data as an offline snapshot and displays its download time, loaded count, and Data & AI count. Missing session codes/titles and duplicate records are counted explicitly.
-- Data & AI classification and interest matching use catalog metadata plus keyword rules in `catalog.mjs`; they are app-generated recommendations, not Microsoft's official track assignments. The homepage explorer searches the full catalog; the Data & AI page stays within its subset.
-- Recommendations show ten matches initially, with **Show more matches** for the rest. The explorer pages through all matching sessions in groups of twenty.
-- Direct session links use the catalog's `langLocale` and opaque `sessionInstanceId`. If either is missing, the UI links to the official catalog and tells the attendee to search by session code instead of inventing a URL.
-- Fetches time out after 30 seconds; downloads and imports are limited to 50 MB. Network, upstream, and malformed-feed errors are surfaced in the UI and server logs. A failed refresh does not silently serve stale or example sessions.
-
-### Restricted networks
-
-The bundled snapshots work immediately on restricted networks. To use a newer snapshot, open **Network restricted? Import the official catalog JSON**, then select a JSON file downloaded from the official feed on a connected machine. Imports are labeled as snapshots and stay in the current browser tab's memory; they are not uploaded or persisted. The Data & AI page filters imports to its subset. The app cannot independently verify a selected file's provenance or event year; use only the official 2026 feed.
-
-## Checks
-
-Run `npm test` for normalization, complete-catalog loading, caching, refresh/failure handling, interest ranking, and local API tests. Tests do not require internet access. Recommendations are interest matches, not a time-aware schedule; always confirm availability in the [official catalog](https://ignite.microsoft.com/en-US/sessions).
+Recommendations are based on your interests, not session times or availability. Session details can change, so check the [official Ignite session catalog](https://ignite.microsoft.com/en-US/sessions) before planning your schedule.
