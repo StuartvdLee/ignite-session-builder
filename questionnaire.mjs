@@ -1,75 +1,107 @@
-export const allQuestions = [
-  {
-    label: "YOUR STARTING POINT",
-    title: "What do you want to explore at Ignite 2026?",
-    description: "This questionnaire covers all of Ignite 2026, across every session area.",
-    options: [
-      { icon: "✦", title: "AI, agents & copilots", detail: "Put AI to work across your organization.", tags: ["ai"] },
-      { icon: "⛓", title: "Data & analytics", detail: "Connect data and turn it into insights.", tags: ["unify", "integrate", "activate"] },
-      { icon: "⛨", title: "Security & identity", detail: "Protect people, devices and information.", tags: ["security", "protect", "govern"] },
-      { icon: "↗", title: "Cloud & infrastructure", detail: "Build and run a modern platform.", tags: ["cloud", "scale", "operate"] },
-      { icon: "◎", title: "Microsoft 365 & work", detail: "Help teams collaborate and get more done.", tags: ["productivity"] },
-      { icon: "⌘", title: "Apps & developer tools", detail: "Build with GitHub, Azure and Power Platform.", tags: ["develop"] }
-    ]
-  },
-  {
-    label: "YOUR ROLE",
-    title: "What kind of work are you closest to?",
-    description: "Pick the perspective you want your sessions to support.",
-    options: [
-      { icon: "⌘", title: "Developer & app builder", detail: "Code, tools and application architecture.", tags: ["develop", "ai"] },
-      { icon: "⚙", title: "IT & cloud operations", detail: "Infrastructure, endpoints and deployment.", tags: ["cloud", "operate", "scale"] },
-      { icon: "⛨", title: "Security & compliance", detail: "Identity, risk and protection.", tags: ["security", "govern", "protect"] },
-      { icon: "⛓", title: "Data & AI practitioner", detail: "Data platforms, analytics and AI solutions.", tags: ["unify", "integrate", "activate", "ai"] },
-      { icon: "◎", title: "Microsoft 365 & collaboration", detail: "Workplace tools and team productivity.", tags: ["productivity", "operate"] },
-      { icon: "↗", title: "Business & technology leader", detail: "Strategy, adoption and business outcomes.", tags: ["business"] }
-    ]
-  },
-  {
-    label: "YOUR NEXT STEP",
-    title: "What would you like to take home?",
-    description: "Choose the outcome that would make Ignite worthwhile for you.",
-    options: [
-      { icon: "✦", title: "New ways to use AI", detail: "Discover agents, copilots and AI experiences.", tags: ["ai", "activate"] },
-      { icon: "⌘", title: "Practical ways to build", detail: "Apply developer tools and connect platforms.", tags: ["develop", "integrate"] },
-      { icon: "⛨", title: "A secure, reliable foundation", detail: "Improve protection, scale and operations.", tags: ["security", "protect", "scale", "operate"] },
-      { icon: "↗", title: "A strategy for my organization", detail: "Drive adoption, productivity and transformation.", tags: ["business", "productivity"] }
-    ]
-  }
+const allStartingQuestion = {
+  label: "YOUR STARTING POINT",
+  title: "What do you want to explore at Ignite 2026?",
+  description: "This questionnaire covers all of Ignite 2026, across every session area.",
+  options: [
+    { icon: "✦", title: "AI, agents & copilots", detail: "Put AI to work across your organization.", tags: ["ai"] },
+    { icon: "⛓", title: "Data & analytics", detail: "Connect data and turn it into insights.", tags: ["unify", "integrate", "activate", "database"] },
+    { icon: "⛨", title: "Security & identity", detail: "Protect people, devices and information.", tags: ["security", "protect", "govern"] },
+    { icon: "↗", title: "Cloud & infrastructure", detail: "Build and run a modern platform.", tags: ["cloud", "scale", "operate"] },
+    { icon: "◎", title: "Microsoft 365 & work", detail: "Help teams collaborate and get more done.", tags: ["productivity"] },
+    { icon: "⌘", title: "Apps & developer tools", detail: "Build with GitHub, Azure and Power Platform.", tags: ["develop"] }
+  ]
+};
+
+const dataAIStartingQuestion = {
+  label: "YOUR STARTING POINT",
+  title: "What are you hoping to unlock?",
+  description: "Start with the challenge that’s taking up the most space in your head.",
+  options: [
+    { icon: "⛓", title: "Bring scattered data together", detail: "Make the whole estate work as one.", tags: ["unify", "integrate"] },
+    { icon: "◈", title: "Protect data and earn trust", detail: "Keep sensitive information in the right hands.", tags: ["govern", "protect"] },
+    { icon: "✳", title: "Make AI useful with my data", detail: "Ground AI in information I can trust.", tags: ["ai", "activate"] },
+    { icon: "↗", title: "Scale what’s already working", detail: "Build a reliable, manageable platform.", tags: ["scale", "operate"] }
+  ]
+};
+
+const focuses = {
+  foundry: { icon: "✦", title: "Microsoft Foundry & Azure AI", detail: "Build and manage AI applications and agents.", tags: ["foundry"] },
+  m365copilot: { icon: "◎", title: "Microsoft 365 Copilot", detail: "Bring Copilot into everyday work.", tags: ["m365copilot"] },
+  copilotstudio: { icon: "✳", title: "Copilot Studio", detail: "Create and connect low-code agents.", tags: ["copilotstudio"] },
+  githubcopilot: { icon: "⌘", title: "GitHub Copilot", detail: "Use AI in your coding workflow.", tags: ["githubcopilot"] },
+  fabric: { icon: "⛓", title: "Microsoft Fabric & OneLake", detail: "Unify your data platform and analytics.", tags: ["fabric"] },
+  powerbi: { icon: "◎", title: "Power BI", detail: "Build semantic models and useful insights.", tags: ["powerbi"] },
+  databricks: { icon: "⌘", title: "Azure Databricks", detail: "Engineer data and AI on a lakehouse.", tags: ["databricks"] },
+  database: { icon: "⚙", title: "SQL & databases", detail: "Work with SQL, PostgreSQL and Cosmos DB.", tags: ["database"] },
+  cosmos: { icon: "⚙", title: "Azure Cosmos DB", detail: "Ground AI with operational and vector data.", tags: ["cosmos"] },
+  purview: { icon: "◈", title: "Microsoft Purview", detail: "Govern and protect your information.", tags: ["purview"] },
+  defender: { icon: "⛨", title: "Microsoft Defender & Sentinel", detail: "Detect and respond to threats.", tags: ["defender"] },
+  entra: { icon: "◈", title: "Microsoft Entra & identity", detail: "Control access for people and agents.", tags: ["entra"] },
+  intune: { icon: "⚙", title: "Microsoft Intune", detail: "Secure and manage your endpoints.", tags: ["intune"] },
+  infrastructure: { icon: "↗", title: "Compute, networking & storage", detail: "Design the infrastructure your workloads need.", tags: ["infrastructure"] },
+  containers: { icon: "⌘", title: "Containers & Kubernetes", detail: "Run apps on AKS and container platforms.", tags: ["containers"] },
+  hybrid: { icon: "⛓", title: "Azure Arc & hybrid cloud", detail: "Connect cloud, datacenter and edge.", tags: ["hybrid"] },
+  monitor: { icon: "◎", title: "Monitoring & observability", detail: "Understand and improve workload health.", tags: ["monitor"] },
+  teams: { icon: "◎", title: "Microsoft Teams", detail: "Improve collaboration and communication.", tags: ["teams"] },
+  sharepoint: { icon: "⛓", title: "SharePoint", detail: "Manage content and knowledge.", tags: ["sharepoint"] },
+  windows: { icon: "⚙", title: "Windows", detail: "Modernize the workplace and endpoints.", tags: ["windows"] },
+  devtools: { icon: "⌘", title: "GitHub & developer tools", detail: "Improve the tools you build with.", tags: ["devtools"] },
+  appplatform: { icon: "↗", title: "Azure app platforms & .NET", detail: "Build APIs, services and applications.", tags: ["appplatform"] },
+  powerplatform: { icon: "✳", title: "Power Platform", detail: "Build apps and automate with low code.", tags: ["powerplatform"] }
+};
+
+const outcomes = {
+  build: { icon: "⌘", title: "Build a solution", detail: "Learn application and agent development.", tags: ["develop"] },
+  secure: { icon: "⛨", title: "Secure and govern it", detail: "Apply protection, controls and governance.", tags: ["security", "protect", "govern"] },
+  operate: { icon: "⚙", title: "Run it reliably at scale", detail: "Improve deployment, operations and performance.", tags: ["operate", "scale"] },
+  adopt: { icon: "↗", title: "Drive adoption and business value", detail: "Help people and organizations put it to work.", tags: ["business", "productivity"] },
+  integrate: { icon: "⛓", title: "Connect and move data", detail: "Build pipelines, ingestion and integration.", tags: ["integrate"] },
+  insights: { icon: "◎", title: "Turn data into insights", detail: "Deliver analytics and trusted AI grounding.", tags: ["activate"] },
+  govern: { icon: "◈", title: "Govern data and reduce risk", detail: "Apply governance, privacy and protection.", tags: ["govern", "protect"] },
+  detect: { icon: "⛨", title: "Detect and respond to threats", detail: "Improve detection, investigation and response.", tags: ["detect"] },
+  identity: { icon: "◈", title: "Control identity and access", detail: "Secure authentication and authorization.", tags: ["entra"] },
+  cost: { icon: "↗", title: "Optimize costs", detail: "Apply cost management and FinOps.", tags: ["cost"] },
+  deploy: { icon: "⚙", title: "Deploy and manage it", detail: "Improve deployment, automation and operations.", tags: ["operate"] },
+  collaborate: { icon: "◎", title: "Improve productivity", detail: "Help teams collaborate and use AI.", tags: ["productivity", "ai"] },
+  automate: { icon: "⛓", title: "Connect and automate workflows", detail: "Build integrations and useful apps.", tags: ["integrate", "develop"] },
+  scale: { icon: "↗", title: "Improve performance and scale", detail: "Build capacity, reliability and resilience.", tags: ["scale"] },
+  unify: { icon: "⛓", title: "Unify the data estate", detail: "Connect lakehouses, warehouses and platforms.", tags: ["unify"] },
+  ai: { icon: "✦", title: "Activate data for AI", detail: "Ground agents and AI in trusted information.", tags: ["ai", "activate"] }
+};
+
+const allPaths = [
+  { focuses: ["foundry", "m365copilot", "copilotstudio", "githubcopilot"], outcomes: ["build", "secure", "operate", "adopt"] },
+  { focuses: ["fabric", "powerbi", "databricks", "database"], outcomes: ["integrate", "insights", "govern", "operate"] },
+  { focuses: ["defender", "entra", "purview", "intune"], outcomes: ["detect", "identity", "govern", "operate"] },
+  { focuses: ["infrastructure", "containers", "hybrid", "monitor"], outcomes: ["scale", "deploy", "secure", "cost"] },
+  { focuses: ["m365copilot", "teams", "sharepoint", "windows"], outcomes: ["collaborate", "secure", "deploy", "automate"] },
+  { focuses: ["devtools", "appplatform", "powerplatform", "foundry"], outcomes: ["build", "deploy", "secure", "scale"] }
 ];
 
-export const dataAIQuestions = [
-  {
-    label: "YOUR STARTING POINT",
-    title: "What are you hoping to unlock?",
-    description: "Start with the challenge that’s taking up the most space in your head.",
-    options: [
-      { icon: "⛓", title: "Bring scattered data together", detail: "Make the whole estate work as one.", tags: ["unify", "integrate"] },
-      { icon: "◈", title: "Protect data and earn trust", detail: "Keep sensitive information in the right hands.", tags: ["govern", "protect"] },
-      { icon: "✳", title: "Make AI useful with my data", detail: "Ground AI in information I can trust.", tags: ["ai", "activate"] },
-      { icon: "↗", title: "Scale what’s already working", detail: "Build a reliable, manageable platform.", tags: ["scale", "operate"] }
-    ]
-  },
-  {
-    label: "YOUR ROLE",
-    title: "Where do you spend most of your time?",
-    description: "No job title needed—pick the kind of work you’re closest to.",
-    options: [
-      { icon: "⌘", title: "Data platforms & engineering", detail: "Pipelines, platforms, architecture.", tags: ["unify", "integrate", "scale"] },
-      { icon: "◎", title: "Security, privacy & compliance", detail: "Controls, classification, risk.", tags: ["govern", "protect"] },
-      { icon: "⌁", title: "Analytics & business insights", detail: "Make trusted data useful to teams.", tags: ["activate", "unify"] },
-      { icon: "✦", title: "AI apps, agents & copilots", detail: "Build experiences grounded in data.", tags: ["ai", "integrate"] }
-    ]
-  },
-  {
-    label: "YOUR NEXT STEP",
-    title: "What would make you leave inspired?",
-    description: "Think about the idea you’d like to take home with you.",
-    options: [
-      { icon: "◉", title: "A connected data strategy", detail: "See how the pieces fit together.", tags: ["unify", "integrate"] },
-      { icon: "⛨", title: "A safer path to AI", detail: "Reduce risk without slowing down.", tags: ["govern", "protect", "ai"] },
-      { icon: "✳", title: "A way to activate trusted data", detail: "Turn data into useful AI experiences.", tags: ["ai", "activate"] },
-      { icon: "⚙", title: "A platform that runs at scale", detail: "Make reliability and operations repeatable.", tags: ["scale", "operate", "govern"] }
-    ]
-  }
+const dataAIPaths = [
+  { focuses: ["fabric", "databricks", "database", "powerbi"], outcomes: ["integrate", "unify", "insights", "govern"] },
+  { focuses: ["purview", "fabric", "database", "foundry"], outcomes: ["govern", "secure", "ai", "deploy"] },
+  { focuses: ["foundry", "cosmos", "powerbi", "copilotstudio"], outcomes: ["build", "insights", "govern", "operate"] },
+  { focuses: ["fabric", "database", "foundry", "databricks"], outcomes: ["scale", "deploy", "govern", "integrate"] }
 ];
+
+export function getQuestions(scope, firstAnswer = null) {
+  const startingQuestion = scope === "data-ai" ? dataAIStartingQuestion : allStartingQuestion;
+  const paths = scope === "data-ai" ? dataAIPaths : allPaths;
+  const path = paths[firstAnswer ?? 0];
+  return [
+    startingQuestion,
+    {
+      label: "YOUR FOCUS",
+      title: "Which technology would you like to focus on?",
+      description: "Choose a specific focus within your starting topic.",
+      options: path.focuses.map((key) => focuses[key])
+    },
+    {
+      label: "YOUR NEXT STEP",
+      title: "What do you want to do with it?",
+      description: "Your shortlist must match this outcome as well as your chosen technology.",
+      options: path.outcomes.map((key) => outcomes[key])
+    }
+  ];
+}

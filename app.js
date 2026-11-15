@@ -1,10 +1,10 @@
 import { CATALOG_URL, matchLabels, normalizeCatalog, rankSessions } from "./catalog.mjs";
-import { allQuestions, dataAIQuestions } from "./questionnaire.mjs";
+import { getQuestions } from "./questionnaire.mjs";
 
 const scope = document.body.dataset.scope;
 const isDataAI = scope === "data-ai";
 const scopeLabel = isDataAI ? "Data & AI" : "Ignite 2026";
-const questions = isDataAI ? dataAIQuestions : allQuestions;
+let questions = getQuestions(scope);
 
 const icebreakers = [
   isDataAI ? "What’s one thing you wish your data could do for your AI projects today?" : "What’s one challenge you hope Ignite 2026 can help you solve?",
@@ -78,7 +78,10 @@ function renderQuestion() {
     </div>`;
   content.querySelectorAll(".answer-option").forEach((button) => {
     button.addEventListener("click", () => {
-      answers[currentStep] = Number(button.dataset.option);
+      const answer = Number(button.dataset.option);
+      if (answers[currentStep] !== answer) answers.fill(null, currentStep + 1);
+      answers[currentStep] = answer;
+      questions = getQuestions(scope, answers[0]);
       content.querySelectorAll(".answer-option").forEach((option) => {
         option.setAttribute("aria-pressed", String(option === button));
       });
@@ -89,15 +92,16 @@ function renderQuestion() {
 }
 
 function getRecommendations() {
-  const chosenTags = answers.flatMap((answerIndex, questionIndex) =>
+  const answerGroups = answers.map((answerIndex, questionIndex) =>
     answerIndex === null ? [] : questions[questionIndex].options[answerIndex].tags
   );
-  return rankSessions(sessions, chosenTags, scope);
+  // The specific technology, not the broad starting topic, needs title/product evidence.
+  return rankSessions(sessions, [answerGroups[1], answerGroups[0], answerGroups[2]], scope);
 }
 
 function sessionCard(session, index, recommendation = false) {
   const matchText = recommendation
-    ? index === 0 ? "Best interest match" : `${session.score} match signals`
+    ? index === 0 ? "Best interest match" : `Matches all ${questions.length} answers`
     : session.isDataAI ? "Data & AI" : "Official catalog";
   const details = [session.type, session.level, session.speakers].filter(Boolean).join(" · ");
   return `
@@ -125,8 +129,8 @@ function renderRecommendations() {
   const visible = recommendations.slice(0, recommendationLimit);
   document.querySelector("#results-summary").textContent = catalogReady
     ? recommendations.length
-      ? `${recommendations.length} ${scopeLabel} sessions match your answers. Showing ${visible.length}, ranked by topic overlap with your interests.`
-      : `No ${scopeLabel} sessions match these answers in the loaded catalog. Try different answers or explore the catalog below.`
+      ? `${recommendations.length} ${scopeLabel} sessions match your topic, technology and outcome, with your chosen technology in the title or products. Showing ${visible.length}, ranked by strength of evidence.`
+      : `No ${scopeLabel} sessions match this topic, technology and outcome with a strong technology match. Try different answers or explore the unfiltered catalog below.`
     : "Recommendations are unavailable until a catalog is loaded. See the catalog connection above.";
   document.querySelector("#recommendation-list").innerHTML = visible.map((session, index) =>
     sessionCard(session, index, true)).join("");
@@ -145,6 +149,7 @@ function showResults() {
 function startNewQuestionnaire() {
   currentStep = 0;
   answers.fill(null);
+  questions = getQuestions(scope);
   results.hidden = true;
   quizShell.hidden = false;
   library.hidden = true;

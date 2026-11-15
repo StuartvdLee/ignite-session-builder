@@ -14,7 +14,32 @@ export const matchLabels = {
   security: "Security",
   productivity: "Microsoft 365 & productivity",
   develop: "Developer tools & apps",
-  business: "Business transformation"
+  business: "Business transformation",
+  foundry: "Microsoft Foundry",
+  m365copilot: "Microsoft 365 Copilot",
+  copilotstudio: "Copilot Studio",
+  githubcopilot: "GitHub Copilot",
+  fabric: "Microsoft Fabric & OneLake",
+  powerbi: "Power BI",
+  databricks: "Azure Databricks",
+  database: "SQL & databases",
+  cosmos: "Cosmos DB",
+  purview: "Microsoft Purview",
+  defender: "Microsoft Defender & Sentinel",
+  entra: "Microsoft Entra & identity",
+  intune: "Microsoft Intune",
+  infrastructure: "Compute, networking & storage",
+  containers: "Containers & Kubernetes",
+  hybrid: "Azure Arc & hybrid cloud",
+  monitor: "Azure Monitor & observability",
+  cost: "Cost & FinOps",
+  teams: "Microsoft Teams",
+  sharepoint: "SharePoint",
+  windows: "Windows",
+  devtools: "GitHub & developer tools",
+  appplatform: "Azure app platforms",
+  powerplatform: "Power Platform",
+  detect: "Threat detection & response"
 };
 
 const interestPatterns = {
@@ -30,7 +55,32 @@ const interestPatterns = {
   security: /\b(secur\w*|defender|entra|identity|identities|intune|endpoint\w*|zero trust|threat\w*|compliance|privacy)\b/i,
   productivity: /\b(microsoft 365|office 365|teams|sharepoint|outlook|excel|word|powerpoint|windows|workplace|productivity|collaborat\w*)\b/i,
   develop: /\b(develop\w*|github|visual studio|vs code|coding|code|apps?|applications?|apis?|sdk|dotnet|\.net|low.code|power platform)\b/i,
-  business: /\b(business|transformation|strategy|leadership|leaders?|adoption|dynamics 365|sales|customer|roi|frontier)\b/i
+  business: /\b(business|transformation|strategy|leadership|leaders?|adoption|dynamics 365|sales|customer|roi|frontier)\b/i,
+  foundry: /\b(foundry|azure (?:ai|openai))\b/i,
+  m365copilot: /\b(microsoft 365 copilot|m365 copilot|copilot (?:for|in) microsoft 365)\b/i,
+  copilotstudio: /\bcopilot studio\b/i,
+  githubcopilot: /\bgithub copilot\b/i,
+  fabric: /\b(fabric|onelake|one lake)\b/i,
+  powerbi: /\bpower bi\b/i,
+  databricks: /\bdatabricks\b/i,
+  database: /\b(sql|databases?|postgresql|cosmos db)\b/i,
+  cosmos: /\bcosmos db\b/i,
+  purview: /\bpurview\b/i,
+  defender: /\b(defender|sentinel)\b/i,
+  entra: /\b(entra|identity|identities|authentication|authorization)\b/i,
+  intune: /\bintune\b/i,
+  infrastructure: /\b(virtual machines?|compute|network\w*|storage|azure local)\b/i,
+  containers: /\b(containers?|kubernetes|aks)\b/i,
+  hybrid: /\b(azure arc|hybrid|windows server|azure local)\b/i,
+  monitor: /\b(azure monitor|observab\w*|monitor\w*|telemetry)\b/i,
+  cost: /\b(cost\w*|finops|savings|budgets?)\b/i,
+  teams: /\b(microsoft teams|teams (?:premium|rooms|phone))\b/i,
+  sharepoint: /\bsharepoint\b/i,
+  windows: /\bwindows\b/i,
+  devtools: /\b(github|visual studio|vs code|developer tools)\b/i,
+  appplatform: /\b(app service|azure functions|api management|dotnet|azure (?:apps?|applications?))\b|\.net\b/i,
+  powerplatform: /\b(power platform|power apps|power automate|power pages|low.code)\b/i,
+  detect: /\b(threat\w*|detect\w*|incident\w*|response|hunting|soc)\b/i
 };
 
 const dataAIPattern = /\b(data\s*(?:&|and)\s*ai|fabric|onelake|one lake|databricks|purview|foundry|sql|cosmos db|postgresql|databases?|lakehouse|data warehouse|data estate|data governance|data integration|data factory|data engineering|data science|data quality|analytics|power bi|machine learning|rag|retrieval.augmented|vector search|semantic model|ground(?:ing|ed))\b/i;
@@ -107,6 +157,13 @@ export function normalizeCatalog(raw) {
     const tags = Object.entries(interestPatterns)
       .filter(([, pattern]) => pattern.test(searchText))
       .map(([tag]) => tag);
+    const titleTags = Object.entries(interestPatterns)
+      .filter(([, pattern]) => pattern.test(title))
+      .map(([tag]) => tag);
+    const products = displayValues(record.product).join(" ");
+    const productTags = Object.entries(interestPatterns)
+      .filter(([, pattern]) => pattern.test(products))
+      .map(([tag]) => tag);
 
     sessions.push({
       key,
@@ -115,6 +172,8 @@ export function normalizeCatalog(raw) {
       description,
       topics,
       tags,
+      titleTags,
+      productTags,
       isDataAI: dataAIPattern.test(searchText),
       speakers: displayValues(record.speakerNames).join(", "),
       level: displayValues(record.sessionLevel).join(", "),
@@ -134,15 +193,26 @@ export function normalizeCatalog(raw) {
   return { sessions, recordCount: raw.length, skippedCount, duplicateCount };
 }
 
-export function rankSessions(sessions, chosenTags, scope = "all") {
+export function rankSessions(sessions, answerGroups, scope = "all") {
+  if (!answerGroups.length || answerGroups.some((group) => !group?.length)) return [];
+  const groups = answerGroups.map((group) => [...new Set(group)]);
+  const chosenTags = [...new Set(groups.flat())];
   return sessions
     .filter((session) => scope !== "data-ai" || session.isDataAI)
+    .filter((session) =>
+      groups.every((group) => group.some((tag) => session.tags.includes(tag))) &&
+      groups[0].some((tag) => session.titleTags.includes(tag) || session.productTags.includes(tag))
+    )
     .map((session) => ({
       ...session,
-      score: session.tags.reduce((total, tag) =>
-        total + chosenTags.filter((chosen) => chosen === tag).length, 0),
+      score: groups.reduce((total, group, index) => {
+        const coverage = group.reduce((sum, tag) => sum + (
+          session.titleTags.includes(tag) ? 3 : session.productTags.includes(tag) ? 2 :
+            session.tags.includes(tag) ? 1 : 0
+        ), 0) / (3 * group.length);
+        return total + coverage * (groups.length - index);
+      }, 0),
       matchedTags: session.tags.filter((tag) => chosenTags.includes(tag))
     }))
-    .filter((session) => session.score > 0)
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id) || a.key.localeCompare(b.key));
 }

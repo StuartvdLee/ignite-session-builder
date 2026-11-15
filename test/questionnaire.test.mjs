@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 import test from "node:test";
 import { CATALOG_URL, matchLabels, normalizeCatalog, rankSessions } from "../catalog.mjs";
-import { allQuestions, dataAIQuestions } from "../questionnaire.mjs";
+import { getQuestions } from "../questionnaire.mjs";
 
 const source = (await readFile(new URL("../app.js", import.meta.url), "utf8"))
   .replace(/^import .*;\n/gm, "");
@@ -57,7 +57,7 @@ async function openQuiz(scope) {
   const ready = new Promise((resolve) => { loaded = resolve; });
   vm.runInNewContext(source, {
     document, CATALOG_URL, matchLabels, normalizeCatalog, rankSessions,
-    allQuestions, dataAIQuestions, console, AbortSignal,
+    getQuestions, console, AbortSignal,
     fetch: async (url) => {
       requests.push(url);
       return {
@@ -80,7 +80,7 @@ for (const scope of ["all", "data-ai"]) {
     assert.deepEqual(requests, [`/api/catalog?scope=${scope}`]);
     assert.match(get("#catalog-status").textContent, /snapshot.*Works offline/);
     assert.equal(get("#quiz-content").buttons.length, scope === "all" ? 6 : 4);
-    const choices = scope === "all" ? [2, 2, 2] : [1, 1, 1];
+    const choices = scope === "all" ? [2, 3, 1] : [1, 0, 1];
     for (const choice of choices) {
       await get("#quiz-content").buttons[choice].emit("click");
       assert.equal(get("#next-button").disabled, false);
@@ -88,17 +88,59 @@ for (const scope of ["all", "data-ai"]) {
     }
     assert.equal(get("#results").hidden, false);
     assert.equal(get("#quiz-shell").hidden, true);
-    assert.match(get("#recommendation-list").innerHTML, /Purview data governance/);
     if (scope === "all") {
       assert.match(get("#recommendation-list").innerHTML, /Endpoint security with Intune/);
+      assert.doesNotMatch(get("#recommendation-list").innerHTML, /Purview data governance/);
       assert.match(get("#results-summary").textContent, /Ignite 2026 sessions/);
     } else {
+      assert.match(get("#recommendation-list").innerHTML, /Purview data governance/);
       assert.doesNotMatch(get("#recommendation-list").innerHTML, /Endpoint security with Intune/);
       assert.match(get("#results-summary").textContent, /Data & AI sessions/);
     }
+
     await get("#retake-button").emit("click");
     assert.equal(get("#results").hidden, true);
     assert.equal(get("#quiz-shell").hidden, false);
     assert.equal(get("#next-button").disabled, true);
   });
 }
+
+test("changing topic replaces follow-ups and clears stale answers, but reselecting it preserves them", async () => {
+  const { get } = await openQuiz("all");
+  await get("#quiz-content").buttons[2].emit("click");
+  await get("#next-button").emit("click");
+  assert.match(get("#quiz-content").innerHTML, /Microsoft Intune/);
+  await get("#quiz-content").buttons[3].emit("click");
+  await get("#next-button").emit("click");
+  await get("#quiz-content").buttons[1].emit("click");
+  await get("#back-button").emit("click");
+  await get("#back-button").emit("click");
+  await get("#quiz-content").buttons[2].emit("click");
+  await get("#next-button").emit("click");
+  assert.equal(get("#next-button").disabled, false);
+  await get("#back-button").emit("click");
+  await get("#quiz-content").buttons[0].emit("click");
+  await get("#next-button").emit("click");
+  assert.match(get("#quiz-content").innerHTML, /GitHub Copilot/);
+  assert.doesNotMatch(get("#quiz-content").innerHTML, /Microsoft Intune/);
+  assert.equal(get("#next-button").disabled, true);
+  await get("#quiz-content").buttons[0].emit("click");
+  await get("#next-button").emit("click");
+  assert.equal(get("#next-button").disabled, true);
+});
+
+test("specific product evidence excludes sessions that mention the focus only in passing", () => {
+  const { sessions } = normalizeCatalog([
+    { sessionCode: "FOCUSED", title: "Build agents with Copilot Studio", description: "Develop AI apps." },
+    { sessionCode: "PASSING", title: "Build AI apps", description: "Develop solutions with examples including Copilot Studio." },
+    { sessionCode: "NO-OUTCOME", title: "Copilot Studio overview", description: "Learn about AI agents." }
+  ]);
+  const questions = getQuestions("all", 0);
+  const primary = questions[0].options[0].tags;
+  const focus = questions[1].options[2].tags;
+  const outcome = questions[2].options[0].tags;
+  assert.deepEqual(
+    rankSessions(sessions, [focus, primary, outcome]).map((session) => session.id),
+    ["FOCUSED"]
+  );
+});
