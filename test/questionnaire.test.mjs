@@ -92,6 +92,8 @@ for (const scope of ["all", "data-ai"]) {
     }
     assert.equal(get("#results").hidden, false);
     assert.equal(get("#quiz-shell").hidden, true);
+    assert.doesNotMatch(get("#recommendation-list").innerHTML,
+      /Protect device identity and manage deployment|Operate secure identity and deployment at scale|Protect sensitive data with compliance controls/);
     if (scope === "all") {
       assert.match(get("#recommendation-list").innerHTML, /Endpoint security with Intune/);
       assert.doesNotMatch(get("#recommendation-list").innerHTML, /Purview data governance/);
@@ -106,6 +108,10 @@ for (const scope of ["all", "data-ai"]) {
     assert.equal(get("#results").hidden, true);
     assert.equal(get("#quiz-shell").hidden, false);
     assert.equal(get("#next-button").disabled, true);
+    await get("#show-all-sessions").emit("click");
+    assert.equal(get("#featured-library").hidden, false);
+    assert.doesNotMatch(get("#library-list").innerHTML,
+      /Protect device identity and manage deployment|Operate secure identity and deployment at scale|Protect sensitive data with compliance controls/);
   });
 }
 
