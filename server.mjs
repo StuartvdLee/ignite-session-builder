@@ -10,6 +10,7 @@ const assets = new Map([
   ["/data-ai", ["data-ai.html", "text/html; charset=utf-8"]],
   ["/data-ai/", ["data-ai.html", "text/html; charset=utf-8"]],
   ["/data-ai.html", ["data-ai.html", "text/html; charset=utf-8"]],
+  ["/favicon.svg", ["favicon.svg", "image/svg+xml"]],
   ["/app.js", ["app.js", "text/javascript; charset=utf-8"]],
   ["/questionnaire.mjs", ["questionnaire.mjs", "text/javascript; charset=utf-8"]],
   ["/catalog.mjs", ["catalog.mjs", "text/javascript; charset=utf-8"]],
