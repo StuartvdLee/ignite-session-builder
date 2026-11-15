@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { CATALOG_PAGE, CATALOG_URL, normalizeCatalog, rankSessions } from "../catalog.mjs";
 import { CATALOG_CACHE_MS, createBundledCatalogLoader, createCatalogLoader } from "../catalog-service.mjs";
-import { allQuestions, dataAIQuestions } from "../questionnaire.mjs";
+import { getQuestions } from "../questionnaire.mjs";
 import { createAppServer } from "../server.mjs";
 
 // Synthetic records exercise the documented Microsoft feed schema, not real session claims.
@@ -101,7 +101,7 @@ test("matches Data & AI interests and excludes unrelated governance content", ()
 
 test("all-session questionnaire recommends non-Data & AI content; focused quiz excludes it", () => {
   const { sessions } = normalizeCatalog(records);
-  const securityTags = allQuestions[0].options.find((option) => option.tags.includes("security")).tags;
+  const securityTags = getQuestions("all")[0].options.find((option) => option.tags.includes("security")).tags;
   const all = rankSessions(sessions, [securityTags]);
   assert.ok(all.some((session) => session.id === "TEST-OTHER"));
   assert.ok(!rankSessions(sessions, [securityTags], "data-ai").some((session) => session.id === "TEST-OTHER"));
@@ -153,10 +153,13 @@ test("bundled catalogs load offline and preserve the complete raw Data & AI subs
   assert.equal(full.sessions.length, raw.length);
   assert.deepEqual(data.sessions, full.sessions.filter((session) => session.isDataAI));
   assert.deepEqual(subset, raw.filter((record) => normalizeCatalog([record]).sessions[0].isDataAI));
-  for (const [questions, scope] of [[allQuestions, "all"], [dataAIQuestions, "data-ai"]]) {
-    for (const question of questions) {
-      for (const option of question.options) {
-        assert.ok(rankSessions(full.sessions, [option.tags], scope).length > 0, option.title);
+  for (const scope of ["all", "data-ai"]) {
+    const startingQuestion = getQuestions(scope)[0];
+    for (let index = 0; index < startingQuestion.options.length; index += 1) {
+      for (const question of getQuestions(scope, index)) {
+        for (const option of question.options) {
+          assert.ok(rankSessions(full.sessions, [option.tags], scope).length > 0, option.title);
+        }
       }
     }
   }
