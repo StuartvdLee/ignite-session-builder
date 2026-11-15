@@ -182,6 +182,23 @@ h1 span {
 .answer-option:hover { border-color: rgba(173, 145, 255, 0.6); transform: translateY(-1px); }
 .answer-option[aria-pressed="true"] { border-color: var(--violet); background: rgba(173, 145, 255, 0.12); }
 .answer-icon { width: 26px; flex: 0 0 26px; text-align: center; font-size: 19px; }
+.answer-visual {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  place-items: center;
+  border: 1px solid rgba(173, 145, 255, 0.18);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(173, 145, 255, 0.17), rgba(102, 228, 209, 0.09));
+  color: #e8f4ff;
+}
+.answer-visual svg {
+  width: 28px;
+  height: 28px;
+}
+.answer-option[aria-pressed="true"] .answer-visual { border-color: rgba(173, 145, 255, 0.5); }
+.answer-copy { min-width: 0; }
 .answer-copy strong { display: block; font-size: 12px; font-weight: 600; }
 .answer-copy small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.4; }
 .quiz-footer { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }

@@ -13,6 +13,7 @@ const assets = new Map([
   ["/app.js", ["app.js", "text/javascript; charset=utf-8"]],
   ["/questionnaire.mjs", ["questionnaire.mjs", "text/javascript; charset=utf-8"]],
   ["/catalog.mjs", ["catalog.mjs", "text/javascript; charset=utf-8"]],
+  ["/assets/technology-icons.svg", ["assets/technology-icons.svg", "image/svg+xml; charset=utf-8"]],
   ["/data/ignite-2026-all-sessions.json", ["data/ignite-2026-all-sessions.json", "application/json; charset=utf-8"]],
   ["/data/ignite-2026-data-ai-sessions.json", ["data/ignite-2026-data-ai-sessions.json", "application/json; charset=utf-8"]],
   ["/styles.css", ["styles.css", "text/css; charset=utf-8"]]

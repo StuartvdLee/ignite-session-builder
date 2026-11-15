@@ -109,6 +109,44 @@ for (const scope of ["all", "data-ai"]) {
   });
 }
 
+test("each technology displays its corresponding bundled visual on both questionnaires", async () => {
+  const sprite = await readFile(new URL("../assets/technology-icons.svg", import.meta.url), "utf8");
+  const visualIds = new Set([...sprite.matchAll(/<symbol id="([^"]+)"/g)].map((match) => match[1]));
+  for (const scope of ["all", "data-ai"]) {
+    const { get } = await openQuiz(scope);
+    const topics = getQuestions(scope)[0].options;
+    for (let topic = 0; topic < topics.length; topic++) {
+      if (topic > 0) await get("#back-button").emit("click");
+      await get("#quiz-content").buttons[topic].emit("click");
+      await get("#next-button").emit("click");
+      const options = getQuestions(scope, topic)[1].options;
+      const buttons = get("#quiz-content").innerHTML.split(/(?=<button class="answer-option")/).slice(1);
+      assert.equal(buttons.length, options.length);
+      assert.equal(new Set(options.map((option) => option.visual)).size, options.length);
+      options.forEach((option, index) => {
+        assert.ok(visualIds.has(option.visual), `Missing visual for ${option.title}`);
+        assert.ok(buttons[index].includes(`<strong>${option.title}</strong>`));
+        assert.ok(buttons[index].includes(`href="/assets/technology-icons.svg#${option.visual}"`));
+        assert.match(buttons[index], /class="answer-icon answer-visual" aria-hidden="true"/);
+      });
+    }
+  }
+});
+
+test("GitHub Copilot and Fabric choices show their product logos", async () => {
+  for (const [scope, title, visual] of [
+    ["all", "GitHub Copilot", "githubcopilot"],
+    ["data-ai", "Microsoft Fabric & OneLake", "fabric"]
+  ]) {
+    const { get } = await openQuiz(scope);
+    await get("#quiz-content").buttons[0].emit("click");
+    await get("#next-button").emit("click");
+    const button = get("#quiz-content").innerHTML.split(/(?=<button class="answer-option")/)
+      .find((html) => html.includes(`<strong>${title}</strong>`));
+    assert.ok(button?.includes(`href="/assets/technology-icons.svg#${visual}"`));
+  }
+});
+
 test("changing topic replaces follow-ups and clears stale answers, but reselecting it preserves them", async () => {
   const { get } = await openQuiz("all");
   await get("#quiz-content").buttons[2].emit("click");

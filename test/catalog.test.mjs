@@ -329,6 +329,17 @@ test("serves browser modules but not backend code, and preserves HTTP behavior",
   assert.equal(await (await fetch(base + "/", { method: "HEAD" })).text(), "");
 });
 
+test("serves the bundled technology logos without a network", async (t) => {
+  const base = await serve(t);
+  const response = await fetch(`${base}/assets/technology-icons.svg`);
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type"), /image\/svg\+xml/);
+  assert.match(await response.text(), /<symbol id="fabric"/);
+  const head = await fetch(`${base}/assets/technology-icons.svg`, { method: "HEAD" });
+  assert.equal(head.status, 200);
+  assert.equal(await head.text(), "");
+});
+
 test("pages select distinct questionnaires and APIs load their snapshots without a network", async (t) => {
   const base = await serve(t, {
     loadCatalog: createBundledCatalogLoader({ loadLiveCatalog: async () => {

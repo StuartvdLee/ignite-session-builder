@@ -76,7 +76,9 @@ function renderQuestion() {
         <button class="answer-option" type="button" data-option="${index}" aria-pressed="${Array.isArray(answers[currentStep])
           ? answers[currentStep].includes(index)
           : answers[currentStep] === index}">
-          <span class="answer-icon" aria-hidden="true">${option.icon}</span>
+          ${option.visual
+            ? `<span class="answer-icon answer-visual" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use href="/assets/technology-icons.svg#${escapeHtml(option.visual)}"></use></svg></span>`
+            : `<span class="answer-icon" aria-hidden="true">${option.icon}</span>`}
           <span class="answer-copy"><strong>${option.title}</strong><small>${option.detail}</small></span>
         </button>
       `).join("")}

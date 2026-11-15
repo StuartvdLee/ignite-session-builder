@@ -4,6 +4,8 @@ A lightweight, offline-ready recommendation quiz for **all of Microsoft Ignite 2
 
 The homepage's three-question quiz covers AI, data, security, cloud, Microsoft 365 and developer tools across the full catalog. **[/data-ai](http://127.0.0.1:3000/data-ai)** provides the focused Data & AI questionnaire and explorer. Both pages rank sessions by interests inferred from official titles, abstracts, topics, and products. “I'm the MVP” opens moderator icebreakers.
 
+Technology choices use locally bundled product logos. Microsoft Cloud Product Icons were curated by [aidevme](https://github.com/aidevme/microsoft-cloud-product-icons), based on [DamoBird365](https://damobird365.com/), and adapted into an SVG sprite ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) for the collection). Other sources and license notices are included in the SVG. Product marks belong to their respective owners and may require permission for reuse.
+
 On this branch, **topic-specific follow-ups** ask for a technology and outcome based on the first answer. For example, AI leads to Foundry, Microsoft 365 Copilot, Copilot Studio or GitHub Copilot; security leads to Defender, Entra, Purview or Intune. Sessions must match all three choices, and the specific technology needs evidence in the title or named products, not just an abstract or generic topic. Ranking favors title evidence over products and other metadata, weights technology first, then topic and outcome, and normalizes by the number of interests in each answer. Changing an earlier choice clears downstream answers. There is no arbitrary result cap or fallback to loosely related sessions; the explorer remains unfiltered.
 
 ## Run on your computer
