@@ -115,6 +115,34 @@ for (const scope of ["all", "data-ai"]) {
   });
 }
 
+test("requested questions render their subtitles in both questionnaires", async () => {
+  for (const scope of ["all", "data-ai"]) {
+    const questions = getQuestions(scope);
+    if (scope === "all") {
+      assert.equal(questions[0].title, "What do you want to explore at Ignite 2026?");
+      assert.equal(
+        questions[0].description,
+        "Explore the technologies and ideas shaping how teams work, build, and grow."
+      );
+    }
+    assert.equal(questions[2].title, "What do you want to do with it?");
+    assert.equal(
+      questions[2].description,
+      "Build, protect, connect, or scale—choose the impact that matters to your work."
+    );
+
+    const { get } = await openQuiz(scope);
+    if (scope === "all") {
+      assert.match(get("#quiz-content").innerHTML, /Explore the technologies and ideas shaping how teams work, build, and grow\./);
+    }
+    for (let step = 0; step < 2; step++) {
+      await get("#quiz-content").buttons[0].emit("click");
+      await get("#next-button").emit("click");
+    }
+    assert.match(get("#quiz-content").innerHTML, /Build, protect, connect, or scale—choose the impact that matters to your work\./);
+  }
+});
+
 test("each technology displays its corresponding bundled visual on both questionnaires", async () => {
   const sprite = await readFile(new URL("../assets/technology-icons.svg", import.meta.url), "utf8");
   const visualIds = new Set([...sprite.matchAll(/<symbol id="([^"]+)"/g)].map((match) => match[1]));

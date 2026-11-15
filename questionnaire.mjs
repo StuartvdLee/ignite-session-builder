@@ -1,7 +1,7 @@
 const allStartingQuestion = {
   label: "YOUR STARTING POINT",
   title: "What do you want to explore at Ignite 2026?",
-  description: "This questionnaire covers all of Ignite 2026, across every session area.",
+  description: "Explore the technologies and ideas shaping how teams work, build, and grow.",
   options: [
     { icon: "✦", title: "AI, agents & copilots", detail: "Put AI to work across your organization.", tags: ["ai"] },
     { icon: "⛓", title: "Data & analytics", detail: "Connect data and turn it into insights.", tags: ["unify", "integrate", "activate", "database"] },
@@ -100,7 +100,7 @@ export function getQuestions(scope, firstAnswer = null) {
     {
       label: "YOUR NEXT STEP",
       title: "What do you want to do with it?",
-      description: "Your shortlist must match this outcome as well as your chosen technology.",
+      description: "Build, protect, connect, or scale—choose the impact that matters to your work.",
       options: path.outcomes.map((key) => outcomes[key])
     }
   ];
