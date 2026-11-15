@@ -44,7 +44,7 @@ jobs:
         run: |
           zip "$RUNNER_TEMP/app.zip" \
             package.json server.mjs catalog-service.mjs catalog.mjs \
-            index.html data-ai.html app.js questionnaire.mjs styles.css \
+            index.html data-ai.html app.js questionnaire.mjs styles.css favicon.svg \
             assets/technology-icons.svg \
             data/catalog-info.json data/ignite-2026-all-sessions.json \
             data/ignite-2026-data-ai-sessions.json
@@ -82,3 +82,6 @@ jobs:
           curl --fail --silent --show-error --retry 12 --retry-all-errors \
             --retry-delay 10 --connect-timeout 10 --max-time 30 \
             "https://${APP_HOSTNAME}/" --output /dev/null
+          curl --fail --silent --show-error --retry 12 --retry-all-errors \
+            --retry-delay 10 --connect-timeout 10 --max-time 30 \
+            "https://${APP_HOSTNAME}/favicon.svg" --output /dev/null
