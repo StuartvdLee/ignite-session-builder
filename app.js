@@ -121,7 +121,6 @@ function sessionCard(session, index, recommendation = false) {
         <span class="match-label">${matchText}</span>
       </div>
       <h3>${escapeHtml(session.title)}</h3>
-      <p>${escapeHtml(session.description || "No abstract is published in the catalog yet.")}</p>
       ${details ? `<p class="session-meta">${escapeHtml(details)}</p>` : ""}
       ${recommendation && session.matchedTags.length
         ? `<p class="match-reason">Matched to your answers: ${session.matchedTags.map((tag) => escapeHtml(matchLabels[tag])).join(" · ")}</p>`

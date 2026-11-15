@@ -255,6 +255,13 @@ footer { width: min(100% - 36px, 760px); margin: 0 auto; padding: 0 0 24px; disp
 [hidden] { display: none !important; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
+@media (min-width: 1024px) {
+  main, footer { width: min(100% - 36px, 1100px); }
+  /* Use three columns only when the answers fill complete rows; otherwise keep 2 × 2. */
+  .answer-grid:has(> .answer-option:last-child:nth-child(3n)) { grid-template-columns: repeat(3, 1fr); }
+  .session-list { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 580px) {
   .topbar { height: 64px; padding: 0 18px; }
   main { width: min(100% - 28px, 760px); }
