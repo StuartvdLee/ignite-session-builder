@@ -48,6 +48,11 @@ button { color: inherit; }
 .wordmark-icon { color: var(--cyan); font-size: 23px; line-height: 1; }
 .wordmark-light { color: var(--muted); font-weight: 400; }
 
+.scope-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 24px; padding: 18px; }
+.scope-nav a, .catalog-connection a { color: var(--cyan); }
+.scope-nav a { font-size: 13px; text-decoration: none; }
+.scope-nav a[aria-current="page"] { color: var(--ink); text-decoration: underline; text-underline-offset: 5px; }
+
 .mode-switch, .text-button, .back-button {
   border: 0;
   background: transparent;

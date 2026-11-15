@@ -1,8 +1,8 @@
-# Data + AI Trailfinder
+# Ignite 2026 Trailfinder
 
-A lightweight recommendation quiz for a Microsoft Ignite 2026 Data & AI conversation, connected to Microsoft's full session catalog. No build step or dependencies are required.
+A lightweight, offline-ready recommendation quiz for **all of Microsoft Ignite 2026**. No build step or dependencies are required.
 
-The three-question quiz ranks Data & AI sessions by interests inferred from the official titles, abstracts, topics, and products. “I'm the MVP” opens moderator icebreakers; the catalog connection provides a searchable catalog with Data & AI and full-catalog views.
+The homepage's three-question quiz covers AI, data, security, cloud, Microsoft 365, developer tools and business transformation across the full catalog. **[/data-ai](http://127.0.0.1:3000/data-ai)** keeps the focused Data & AI questionnaire and explorer. Both pages rank sessions by interests inferred from official titles, abstracts, topics, and products. “I'm the MVP” opens moderator icebreakers.
 
 ## Run on your computer
 
@@ -14,7 +14,7 @@ npm start
 
 Open **http://127.0.0.1:3000/** in a browser on the same computer. No `npm install` is needed. Stop the server with Ctrl+C.
 
-Use `npm start`, not a generic static server or a direct `index.html` file: the local server provides the catalog API and avoids browser cross-origin restrictions. Your server needs internet access to Microsoft to fetch the catalog. There are no external font or build dependencies.
+Use `npm start`, not a generic static server or a direct `index.html` file: the local server provides the catalog API. **No internet connection is needed for either questionnaire or the session explorer**: the server loads the JSON snapshots committed in `data/`. Internet access is needed only for **Refresh catalog** and opening official session links. There are no external font or build dependencies.
 
 The server must run on your own computer for that address to work locally. Starting it in a remote workspace does not expose it on your computer.
 
@@ -51,24 +51,23 @@ Merge the workflow to `main`, then push to `main` or run **Deploy to Azure App S
 
 The template creates `<AZURE_WEBAPP_NAME>-plan` with one B1 instance and Always On enabled. **Basic B1 is a paid tier**, charged while the plan exists, even without traffic. Use a new app name and a dedicated plan; every deployment reapplies B1 and the template's app settings, so do not point this at an unrelated existing app or shared plan. To stop charges permanently, delete the app and its plan, or delete the resource group if it contains only this deployment.
 
-App Service supplies `PORT`; the template sets `HOST=0.0.0.0` so Azure can reach the server. Local runs still bind only to `127.0.0.1` by default. The deployed server needs outbound HTTPS access to Microsoft for the catalog. The deployment check verifies the homepage, not upstream catalog availability.
+App Service supplies `PORT`; the template sets `HOST=0.0.0.0` so Azure can reach the server. Local runs still bind only to `127.0.0.1` by default. The deployment package includes both pages and the offline snapshots. Outbound HTTPS access to Microsoft is needed only for catalog refreshes.
 
 ## Official catalog connection
 
-The server downloads **https://aka.ms/ignite2026-session-info**, the Ignite 2026 JSON endpoint configured in [Microsoft's events CLI](https://github.com/microsoft/Build-CLI/blob/main/cli/src/config.ts). It follows Microsoft's redirects and loads the full array rather than a hardcoded selection or one search-results page. There is no account sign-in or API key.
+The bundled snapshot was downloaded from **https://aka.ms/ignite2026-session-info** on **2026-11-15 at 00:37 UTC** (November 14 Pacific time). Microsoft's redirect resolves to its `ignite2026-prod` full-session JSON feed. There is no account sign-in or API key.
 
-- A successful download is cached in memory for 15 minutes. **Refresh catalog** bypasses the cache. Restarting the server clears it.
-- The UI displays the total loaded sessions, the Data & AI subset count, and the fetch time. Missing session codes/titles and duplicate records are counted explicitly.
-- Data & AI classification and interest matching use catalog metadata plus keyword rules in `catalog.mjs`; they are app-generated recommendations, not Microsoft's official track assignments. The explorer can search the full catalog, including sessions outside this subset.
-- Recommendations show eight matches initially, with **Show more matches** for the rest. The explorer pages through all matching sessions in groups of twenty; nothing is limited to the original three sessions.
+- [`data/ignite-2026-all-sessions.json`](data/ignite-2026-all-sessions.json) contains all **1,512** original feed records; [`data/ignite-2026-data-ai-sessions.json`](data/ignite-2026-data-ai-sessions.json) contains the **524** records matching the existing Data & AI rules. Both are importable JSON arrays, not synthetic examples. Source URLs and timestamps are recorded in [`data/catalog-info.json`](data/catalog-info.json).
+- `/api/catalog` loads the bundled full catalog; `/api/catalog?scope=data-ai` loads the bundled subset. Neither contacts Microsoft. **Refresh catalog** explicitly requests a new live download with `refresh=1`, following redirects and loading the complete array before applying the page's scope. Reloading the page returns to the bundled snapshot.
+- The UI labels bundled data as an offline snapshot and displays its download time, loaded count, and Data & AI count. Missing session codes/titles and duplicate records are counted explicitly.
+- Data & AI classification and interest matching use catalog metadata plus keyword rules in `catalog.mjs`; they are app-generated recommendations, not Microsoft's official track assignments. The homepage explorer searches the full catalog; the Data & AI page stays within its subset.
+- Recommendations show ten matches initially, with **Show more matches** for the rest. The explorer pages through all matching sessions in groups of twenty.
 - Direct session links use the catalog's `langLocale` and opaque `sessionInstanceId`. If either is missing, the UI links to the official catalog and tells the attendee to search by session code instead of inventing a URL.
 - Fetches time out after 30 seconds; downloads and imports are limited to 50 MB. Network, upstream, and malformed-feed errors are surfaced in the UI and server logs. A failed refresh does not silently serve stale or example sessions.
 
 ### Restricted networks
 
-If Microsoft is blocked on the machine running the server, open **Network restricted? Import the official catalog JSON** in the app. Download the feed above from a machine that can reach it, and select the JSON file. The same normalizer and matching logic handle the entire import, which is labeled as an **imported snapshot**, not a live connection. The app cannot independently verify a selected file's provenance or event year; use only the official 2026 feed. Imports stay in the current browser tab's memory and are not uploaded or persisted.
-
-The implementation environment could not resolve Microsoft's catalog hosts, including the official short link, so a live upstream download could not be verified there. The endpoint and schema were confirmed against Microsoft's published integration, and tests cover catalog processing and the API using representative synthetic records, not a purported live snapshot.
+The bundled snapshots work immediately on restricted networks. To use a newer snapshot, open **Network restricted? Import the official catalog JSON**, then select a JSON file downloaded from the official feed on a connected machine. Imports are labeled as snapshots and stay in the current browser tab's memory; they are not uploaded or persisted. The Data & AI page filters imports to its subset. The app cannot independently verify a selected file's provenance or event year; use only the official 2026 feed.
 
 ## Checks
 

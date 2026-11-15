@@ -1,46 +1,16 @@
 import { CATALOG_URL, matchLabels, normalizeCatalog, rankSessions } from "./catalog.mjs";
+import { allQuestions, dataAIQuestions } from "./questionnaire.mjs";
 
-const questions = [
-  {
-    label: "YOUR STARTING POINT",
-    title: "What are you hoping to unlock?",
-    description: "Start with the challenge that’s taking up the most space in your head.",
-    options: [
-      { icon: "⛓", title: "Bring scattered data together", detail: "Make the whole estate work as one.", tags: ["unify", "integrate"] },
-      { icon: "◈", title: "Protect data and earn trust", detail: "Keep sensitive information in the right hands.", tags: ["govern", "protect"] },
-      { icon: "✳", title: "Make AI useful with my data", detail: "Ground AI in information I can trust.", tags: ["ai", "activate"] },
-      { icon: "↗", title: "Scale what’s already working", detail: "Build a reliable, manageable platform.", tags: ["scale", "operate"] }
-    ]
-  },
-  {
-    label: "YOUR ROLE",
-    title: "Where do you spend most of your time?",
-    description: "No job title needed—pick the kind of work you’re closest to.",
-    options: [
-      { icon: "⌘", title: "Data platforms & engineering", detail: "Pipelines, platforms, architecture.", tags: ["unify", "integrate", "scale"] },
-      { icon: "◎", title: "Security, privacy & compliance", detail: "Controls, classification, risk.", tags: ["govern", "protect"] },
-      { icon: "⌁", title: "Analytics & business insights", detail: "Make trusted data useful to teams.", tags: ["activate", "unify"] },
-      { icon: "✦", title: "AI apps, agents & copilots", detail: "Build experiences grounded in data.", tags: ["ai", "integrate"] }
-    ]
-  },
-  {
-    label: "YOUR NEXT STEP",
-    title: "What would make you leave inspired?",
-    description: "Think about the idea you’d like to take home with you.",
-    options: [
-      { icon: "◉", title: "A connected data strategy", detail: "See how the pieces fit together.", tags: ["unify", "integrate"] },
-      { icon: "⛨", title: "A safer path to AI", detail: "Reduce risk without slowing down.", tags: ["govern", "protect", "ai"] },
-      { icon: "✳", title: "A way to activate trusted data", detail: "Turn data into useful AI experiences.", tags: ["ai", "activate"] },
-      { icon: "⚙", title: "A platform that runs at scale", detail: "Make reliability and operations repeatable.", tags: ["scale", "operate", "govern"] }
-    ]
-  }
-];
+const scope = document.body.dataset.scope;
+const isDataAI = scope === "data-ai";
+const scopeLabel = isDataAI ? "Data & AI" : "Ignite 2026";
+const questions = isDataAI ? dataAIQuestions : allQuestions;
 
 const icebreakers = [
-  "What’s one thing you wish your data could do for your AI projects today?",
-  "Where does your data journey get stuck: finding it, trusting it, or putting it to work?",
+  isDataAI ? "What’s one thing you wish your data could do for your AI projects today?" : "What’s one challenge you hope Ignite 2026 can help you solve?",
+  isDataAI ? "Where does your data journey get stuck: finding it, trusting it, or putting it to work?" : "Where would new technology make the biggest difference for your team?",
   "If you could bring one idea home from Ignite, what would it help your team do?",
-  "What’s a question about data or AI you hope to leave Ignite able to answer?"
+  isDataAI ? "What’s a question about data or AI you hope to leave Ignite able to answer?" : "What’s a question you hope to leave Ignite able to answer?"
 ];
 
 let currentStep = 0;
@@ -122,7 +92,7 @@ function getRecommendations() {
   const chosenTags = answers.flatMap((answerIndex, questionIndex) =>
     answerIndex === null ? [] : questions[questionIndex].options[answerIndex].tags
   );
-  return rankSessions(sessions, chosenTags);
+  return rankSessions(sessions, chosenTags, scope);
 }
 
 function sessionCard(session, index, recommendation = false) {
@@ -140,7 +110,7 @@ function sessionCard(session, index, recommendation = false) {
       <p>${escapeHtml(session.description || "No abstract is published in the catalog yet.")}</p>
       ${details ? `<p class="session-meta">${escapeHtml(details)}</p>` : ""}
       ${recommendation && session.matchedTags.length
-        ? `<p class="match-reason">Matched to your answers: ${session.matchedTags.map((tag) => matchLabels[tag]).join(" · ")}</p>`
+        ? `<p class="match-reason">Matched to your answers: ${session.matchedTags.map((tag) => escapeHtml(matchLabels[tag])).join(" · ")}</p>`
         : ""}
       <div class="session-bottom">
         <div class="tag-list">${session.topics.slice(0, 5).map((topic) => `<span class="tag">${escapeHtml(topic)}</span>`).join("")}</div>
@@ -155,8 +125,8 @@ function renderRecommendations() {
   const visible = recommendations.slice(0, recommendationLimit);
   document.querySelector("#results-summary").textContent = catalogReady
     ? recommendations.length
-      ? `${recommendations.length} Data & AI sessions match your answers. Showing ${visible.length}, ranked by topic overlap with your interests.`
-      : "No Data & AI sessions match these answers in the loaded catalog. Try different answers or explore the full catalog below."
+      ? `${recommendations.length} ${scopeLabel} sessions match your answers. Showing ${visible.length}, ranked by topic overlap with your interests.`
+      : `No ${scopeLabel} sessions match these answers in the loaded catalog. Try different answers or explore the catalog below.`
     : "Recommendations are unavailable until a catalog is loaded. See the catalog connection above.";
   document.querySelector("#recommendation-list").innerHTML = visible.map((session, index) =>
     sessionCard(session, index, true)).join("");
@@ -216,13 +186,15 @@ function applyCatalog(catalog, importedName = null) {
   catalogReady = true;
   catalogStatus.textContent = importedName
     ? `Imported ${sessions.length} sessions from ${importedName}. This is a local snapshot, not a live connection.`
-    : `Connected to the official Ignite 2026 catalog · ${sessions.length} sessions`;
+    : catalog.sourceKind === "bundled"
+      ? `Loaded the bundled Ignite 2026 ${isDataAI ? "Data & AI" : "full-catalog"} snapshot · ${sessions.length} sessions. Works offline.`
+      : `Connected to the official Ignite 2026 catalog · ${sessions.length} sessions`;
   const dataCount = sessions.filter((session) => session.isDataAI).length;
-  const checkedAt = importedName ? "Imported" : "Fetched";
+  const checkedAt = importedName ? "Imported" : catalog.sourceKind === "bundled" ? "Snapshot downloaded" : "Fetched";
   catalogDetails.textContent = `${dataCount} identified as Data & AI by catalog metadata and keywords. ${checkedAt} ${new Date(catalog.fetchedAt).toLocaleString()}.` +
     (catalog.skippedCount ? ` ${catalog.skippedCount} records without a session code or title were excluded.` : "") +
     (catalog.duplicateCount ? ` ${catalog.duplicateCount} duplicate records were removed.` : "");
-  document.querySelector("#catalog-connection").dataset.state = importedName ? "imported" : "connected";
+  document.querySelector("#catalog-connection").dataset.state = importedName || catalog.sourceKind === "bundled" ? "imported" : "connected";
   refreshButton.disabled = false;
   exploreButton.disabled = false;
   updateNextButton();
@@ -236,7 +208,7 @@ function showCatalogError(error) {
   console.error("Ignite catalog loading failed:", error);
   resetCatalogViews();
   catalogStatus.textContent = `Catalog unavailable: ${error.message}`;
-  catalogDetails.textContent = "No sample sessions are being substituted. Retry, or download the official JSON catalog and import it below.";
+  catalogDetails.textContent = "Reload this page to use the bundled offline snapshot, retry, or import an official JSON catalog below.";
   document.querySelector("#catalog-connection").dataset.state = "error";
   refreshButton.disabled = false;
 }
@@ -244,12 +216,12 @@ function showCatalogError(error) {
 async function loadCatalog(refresh = false) {
   const version = ++requestVersion;
   resetCatalogViews();
-  catalogStatus.textContent = "Connecting to Microsoft's full Ignite 2026 session catalog...";
+  catalogStatus.textContent = refresh ? "Refreshing from Microsoft's Ignite 2026 session catalog..." : "Loading the bundled offline session catalog...";
   catalogDetails.textContent = "You can answer the quiz while the catalog loads.";
   document.querySelector("#catalog-connection").dataset.state = "loading";
   refreshButton.disabled = true;
   try {
-    const response = await fetch(`/api/catalog${refresh ? "?refresh=1" : ""}`, {
+    const response = await fetch(`/api/catalog?scope=${scope}${refresh ? "&refresh=1" : ""}`, {
       signal: AbortSignal.timeout(35_000)
     });
     if (!response.headers.get("content-type")?.includes("application/json")) {
@@ -286,6 +258,7 @@ backButton.addEventListener("click", () => {
 });
 
 homeLink.addEventListener("click", (event) => {
+  if (isDataAI) return;
   event.preventDefault();
   startNewQuestionnaire();
 });
@@ -336,6 +309,7 @@ document.querySelector("#catalog-file").addEventListener("change", async (event)
   try {
     if (file.size > 50 * 1024 * 1024) throw new Error("The catalog file must be smaller than 50 MB.");
     const catalog = normalizeCatalog(JSON.parse(await file.text()));
+    if (isDataAI) catalog.sessions = catalog.sessions.filter((session) => session.isDataAI);
     if (version === requestVersion) {
       applyCatalog({ ...catalog, fetchedAt: new Date().toISOString() }, file.name);
     }
@@ -361,5 +335,6 @@ moreRecommendationsButton.addEventListener("click", () => {
   renderRecommendations();
 });
 
+document.querySelector("#icebreaker").textContent = icebreakers[0];
 renderQuestion();
 loadCatalog();

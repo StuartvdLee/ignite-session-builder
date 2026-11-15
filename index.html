@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#10172a">
-    <meta name="description" content="Find Microsoft Ignite sessions for your data and AI estate goals.">
-    <title>Data + AI Trailfinder | Ignite 2026</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="app.js" type="module"></script>
+    <meta name="description" content="Find sessions across all of Microsoft Ignite 2026 with a quick questionnaire.">
+    <title>All Ignite 2026 Sessions | Trailfinder</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" type="module"></script>
   </head>
-  <body>
+  <body data-scope="all">
     <header class="topbar">
-      <a class="wordmark" href="#" aria-label="Data and AI Trailfinder home">
+      <a class="wordmark" href="/" aria-label="Ignite 2026 Trailfinder home">
         <span class="wordmark-icon" aria-hidden="true">✳</span>
         <span>IGNITE <span class="wordmark-light">2026</span></span>
       </a>
@@ -19,13 +19,17 @@
         <span aria-hidden="true">✦</span> I'm the MVP
       </button>
     </header>
+    <nav class="scope-nav" aria-label="Session questionnaires">
+      <a href="/" aria-current="page">All Ignite 2026 sessions</a>
+      <a href="/data-ai">Data &amp; AI sessions</a>
+    </nav>
 
     <main>
       <section class="hero" aria-labelledby="page-title">
-        <div class="eyebrow"><span class="live-dot"></span> DATA &amp; AI SESSION FINDER</div>
+        <div class="eyebrow"><span class="live-dot"></span> ALL IGNITE 2026 SESSIONS</div>
         <h1 id="page-title">Find your <span>Ignite path.</span></h1>
-        <p class="hero-copy">A few quick picks. A smarter shortlist. Let’s find the sessions that fit what you’re here to build.</p>
-        <div class="hero-note"><span aria-hidden="true">✳</span> Build a unified, governed data and AI estate</div>
+        <p class="hero-copy">Your questionnaire for all of Microsoft Ignite 2026: AI, data, security, cloud, Microsoft 365, developer tools and more.</p>
+        <div class="hero-note"><span aria-hidden="true">✳</span> One questionnaire. The entire Ignite 2026 catalog.</div>
       </section>
 
       <section class="quiz-shell" id="quiz-shell" aria-label="Session recommendation quiz">
@@ -53,7 +57,7 @@
         </div>
         <div class="prompt-card">
           <div class="prompt-label">TRY THIS ICEBREAKER</div>
-          <p id="icebreaker">What’s one thing you wish your data could do for your AI projects today?</p>
+          <p id="icebreaker">What’s one challenge you hope Ignite 2026 can help you solve?</p>
         </div>
         <div class="moderator-actions">
           <button id="shuffle-prompt" class="next-button" type="button">Another question</button>
@@ -71,12 +75,12 @@
         </div>
         <div class="library-filters">
           <label for="library-search">Search sessions, products, or speakers
-            <input id="library-search" type="search" placeholder="Fabric, Purview, Databricks...">
+            <input id="library-search" type="search" placeholder="Azure, Copilot, security, Fabric...">
           </label>
           <label for="library-scope">Catalog scope
             <select id="library-scope">
-              <option value="data-ai">Data &amp; AI</option>
               <option value="all">Full catalog</option>
+              <option value="data-ai">Data &amp; AI</option>
             </select>
           </label>
         </div>
@@ -107,12 +111,13 @@
       <section class="catalog-connection" id="catalog-connection" data-state="loading" aria-label="Official catalog connection">
         <div class="catalog-toolbar">
           <div>
-            <p id="catalog-status" role="status">Connecting to Microsoft's full Ignite 2026 session catalog...</p>
-            <p id="catalog-details">Run the app with npm start to load the official catalog.</p>
+            <p id="catalog-status" role="status">Loading the bundled Ignite 2026 full-catalog snapshot...</p>
+            <p id="catalog-details">The questionnaire works offline with npm start. Refresh requires internet access.</p>
             <button id="show-all-sessions" class="text-button" type="button" disabled>Explore the full catalog <span aria-hidden="true">→</span></button>
           </div>
           <button id="refresh-catalog" class="text-button" type="button" disabled>Refresh catalog</button>
         </div>
+        <p class="catalog-note">Offline JSON: <a href="/data/ignite-2026-all-sessions.json" download>All sessions</a> · <a href="/data/ignite-2026-data-ai-sessions.json" download>Data &amp; AI sessions</a></p>
         <details class="catalog-import">
           <summary>Network restricted? Import the official catalog JSON</summary>
           <p>Download the <a href="https://aka.ms/ignite2026-session-info" target="_blank" rel="noreferrer">Microsoft Ignite 2026 session feed</a> as JSON, then select that file. Imported files are labeled as snapshots, not live data. The app cannot verify a selected file's provenance or event year.</p>
@@ -121,6 +126,6 @@
         </details>
       </section>
     </main>
-    <footer><span>Made for curious minds.</span><span>Microsoft Ignite 2026 · Data &amp; AI</span></footer>
+    <footer><span>Made for curious minds.</span><span>Microsoft Ignite 2026 · All sessions</span></footer>
   </body>
 </html>

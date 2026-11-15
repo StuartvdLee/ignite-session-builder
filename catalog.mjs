@@ -9,7 +9,12 @@ export const matchLabels = {
   ai: "AI",
   activate: "AI-ready data",
   scale: "Scale",
-  operate: "Operations"
+  operate: "Operations",
+  cloud: "Cloud & infrastructure",
+  security: "Security",
+  productivity: "Microsoft 365 & productivity",
+  develop: "Developer tools & apps",
+  business: "Business transformation"
 };
 
 const interestPatterns = {
@@ -20,7 +25,12 @@ const interestPatterns = {
   ai: /\b(ai|artificial intelligence|agents?|copilots?|foundry|machine learning|rag|llms?)\b/i,
   activate: /\b(analytics|insights?|power bi|semantic|ground\w*|rag|retrieval|vector|ai.ready|business intelligence)\b/i,
   scale: /\b(scal\w*|enterprise|performance|capacity|optimi[sz]\w*|reliability|resilien\w*)\b/i,
-  operate: /\b(operat\w*|monitor\w*|observab\w*|deployment|devops|ci\/cd|automation|cost|finops|lifecycle)\b/i
+  operate: /\b(operat\w*|monitor\w*|observab\w*|deployment|devops|ci\/cd|automation|cost|finops|lifecycle)\b/i,
+  cloud: /\b(azure|cloud|infrastructure|hybrid|windows server|virtual machines?|containers?|kubernetes|network\w*|storage)\b/i,
+  security: /\b(secur\w*|defender|entra|identity|identities|intune|endpoint\w*|zero trust|threat\w*|compliance|privacy)\b/i,
+  productivity: /\b(microsoft 365|office 365|teams|sharepoint|outlook|excel|word|powerpoint|windows|workplace|productivity|collaborat\w*)\b/i,
+  develop: /\b(develop\w*|github|visual studio|vs code|coding|code|apps?|applications?|apis?|sdk|dotnet|\.net|low.code|power platform)\b/i,
+  business: /\b(business|transformation|strategy|leadership|leaders?|adoption|dynamics 365|sales|customer|roi|frontier)\b/i
 };
 
 const dataAIPattern = /\b(data\s*(?:&|and)\s*ai|fabric|onelake|one lake|databricks|purview|foundry|sql|cosmos db|postgresql|databases?|lakehouse|data warehouse|data estate|data governance|data integration|data factory|data engineering|data science|data quality|analytics|power bi|machine learning|rag|retrieval.augmented|vector search|semantic model|ground(?:ing|ed))\b/i;
@@ -124,9 +134,9 @@ export function normalizeCatalog(raw) {
   return { sessions, recordCount: raw.length, skippedCount, duplicateCount };
 }
 
-export function rankSessions(sessions, chosenTags) {
+export function rankSessions(sessions, chosenTags, scope = "all") {
   return sessions
-    .filter((session) => session.isDataAI)
+    .filter((session) => scope !== "data-ai" || session.isDataAI)
     .map((session) => ({
       ...session,
       score: session.tags.reduce((total, tag) =>

@@ -44,7 +44,9 @@ jobs:
         run: |
           zip "$RUNNER_TEMP/app.zip" \
             package.json server.mjs catalog-service.mjs catalog.mjs \
-            index.html app.js styles.css
+            index.html data-ai.html app.js questionnaire.mjs styles.css \
+            data/catalog-info.json data/ignite-2026-all-sessions.json \
+            data/ignite-2026-data-ai-sessions.json
 
       - name: Sign in to Azure
         uses: azure/login@v2

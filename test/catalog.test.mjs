@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { CATALOG_PAGE, CATALOG_URL, normalizeCatalog, rankSessions } from "../catalog.mjs";
-import { CATALOG_CACHE_MS, createCatalogLoader } from "../catalog-service.mjs";
+import { CATALOG_CACHE_MS, createBundledCatalogLoader, createCatalogLoader } from "../catalog-service.mjs";
+import { allQuestions, dataAIQuestions } from "../questionnaire.mjs";
 import { createAppServer } from "../server.mjs";
 
 // Synthetic records exercise the documented Microsoft feed schema, not real session claims.
@@ -87,7 +89,7 @@ test("rejects malformed or empty feeds instead of returning sample sessions", ()
 
 test("matches Data & AI interests and excludes unrelated governance content", () => {
   const { sessions } = normalizeCatalog(records);
-  const governance = rankSessions(sessions, ["govern", "protect", "protect"]);
+  const governance = rankSessions(sessions, ["govern", "protect", "protect"], "data-ai");
   assert.equal(governance[0].id, "TEST-GOVERN");
   assert.equal(governance[0].score, 3);
   assert.deepEqual(governance[0].matchedTags, ["govern", "protect"]);
@@ -95,6 +97,49 @@ test("matches Data & AI interests and excludes unrelated governance content", ()
   assert.equal(rankSessions(sessions, ["unify", "integrate"])[0].id, "TEST-DATA");
   assert.equal(rankSessions(sessions, ["operate", "scale"])[0].id, "TEST-SCALE");
   assert.deepEqual(rankSessions(sessions, []), []);
+});
+
+test("all-session questionnaire recommends non-Data & AI content; focused quiz excludes it", () => {
+  const { sessions } = normalizeCatalog(records);
+  const securityTags = allQuestions[0].options.find((option) => option.tags.includes("security")).tags;
+  const all = rankSessions(sessions, securityTags);
+  assert.ok(all.some((session) => session.id === "TEST-OTHER"));
+  assert.ok(!rankSessions(sessions, securityTags, "data-ai").some((session) => session.id === "TEST-OTHER"));
+});
+
+test("bundled catalogs load offline and preserve the complete raw Data & AI subset", async () => {
+  let liveCalls = 0;
+  const load = createBundledCatalogLoader({ loadLiveCatalog: async ({ refresh }) => {
+    assert.equal(refresh, true);
+    liveCalls += 1;
+    return { ...normalizeCatalog(records), sourceKind: "live" };
+  } });
+  const full = await load();
+  const data = await load({ scope: "data-ai" });
+  const raw = JSON.parse(await readFile(new URL("../data/ignite-2026-all-sessions.json", import.meta.url), "utf8"));
+  const subset = JSON.parse(await readFile(new URL("../data/ignite-2026-data-ai-sessions.json", import.meta.url), "utf8"));
+  assert.equal(liveCalls, 0);
+  assert.equal(full.sourceKind, "bundled");
+  assert.equal(full.event, "ignite-2026");
+  assert.equal(full.source, CATALOG_URL);
+  assert.ok(Number.isFinite(Date.parse(full.fetchedAt)));
+  assert.equal(full.sessions.length, raw.length);
+  assert.deepEqual(data.sessions, full.sessions.filter((session) => session.isDataAI));
+  assert.deepEqual(subset, raw.filter((record) => normalizeCatalog([record]).sessions[0].isDataAI));
+  for (const [questions, scope] of [[allQuestions, "all"], [dataAIQuestions, "data-ai"]]) {
+    for (const question of questions) {
+      for (const option of question.options) {
+        assert.ok(rankSessions(full.sessions, option.tags, scope).length > 0, option.title);
+      }
+    }
+  }
+  assert.strictEqual(await load(), full);
+  const refreshed = await load({ refresh: true, scope: "data-ai" });
+  assert.equal(liveCalls, 1);
+  assert.equal(refreshed.sourceKind, "live");
+  assert.ok(refreshed.sessions.every((session) => session.isDataAI));
+  assert.equal(refreshed.sessions.length, 3);
+  assert.strictEqual(await load(), full);
 });
 
 test("loads the full feed without truncation, caches, and supports forced refresh", async () => {
@@ -240,7 +285,7 @@ test("API failures return non-success JSON and log the cause", async (t) => {
 
 test("serves browser modules but not backend code, and preserves HTTP behavior", async (t) => {
   const base = await serve(t);
-  for (const path of ["/", "/app.js", "/styles.css", "/catalog.mjs"]) {
+  for (const path of ["/", "/data-ai", "/data-ai/", "/app.js", "/styles.css", "/catalog.mjs", "/questionnaire.mjs"]) {
     const response = await fetch(base + path);
     assert.equal(response.status, 200, path);
     assert.ok((await response.text()).length > 100);
@@ -252,4 +297,35 @@ test("serves browser modules but not backend code, and preserves HTTP behavior",
   assert.equal(response.status, 405);
   assert.equal(response.headers.get("allow"), "GET, HEAD");
   assert.equal(await (await fetch(base + "/", { method: "HEAD" })).text(), "");
+});
+
+test("pages select distinct questionnaires and APIs load their snapshots without a network", async (t) => {
+  const base = await serve(t, {
+    loadCatalog: createBundledCatalogLoader({ loadLiveCatalog: async () => {
+      assert.fail("Loading a bundled catalog must not contact Microsoft.");
+    } })
+  });
+  const home = await (await fetch(base + "/")).text();
+  const dataPage = await (await fetch(base + "/data-ai")).text();
+  assert.match(home, /data-scope="all"/);
+  assert.match(home, /questionnaire for all of Microsoft Ignite 2026/);
+  assert.match(home, /href="\/data-ai"/);
+  assert.match(dataPage, /data-scope="data-ai"/);
+  assert.match(dataPage, /href="\/"/);
+  for (const page of [home, dataPage]) {
+    assert.match(page, /<\/div>\s*<button id="refresh-catalog"[^>]*>Refresh catalog<\/button>\s*<\/div>\s*<p class="catalog-note">Offline JSON:/);
+  }
+  const full = await (await fetch(base + "/api/catalog")).json();
+  const data = await (await fetch(base + "/api/catalog?scope=data-ai")).json();
+  assert.equal(full.sourceKind, "bundled");
+  assert.equal(data.sourceKind, "bundled");
+  assert.ok(full.sessions.some((session) => !session.isDataAI));
+  assert.deepEqual(data.sessions, full.sessions.filter((session) => session.isDataAI));
+  for (const file of ["all", "data-ai"]) {
+    const response = await fetch(`${base}/data/ignite-2026-${file}-sessions.json`);
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-type"), /application\/json/);
+    assert.equal((await response.json()).length, file === "all" ? full.recordCount : data.recordCount);
+  }
+  assert.equal((await fetch(base + "/api/catalog?scope=unknown")).status, 400);
 });

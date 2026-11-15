@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { CATALOG_URL, normalizeCatalog } from "./catalog.mjs";
 
 export const CATALOG_CACHE_MS = 15 * 60 * 1000;
@@ -49,6 +50,7 @@ export function createCatalogLoader({ fetchImpl = fetch, now = Date.now } = {}) 
     cached = {
       event: "ignite-2026",
       source: CATALOG_URL,
+      sourceKind: "live",
       fetchedAt: new Date(cachedAt).toISOString(),
       ...normalized
     };
@@ -65,5 +67,34 @@ export function createCatalogLoader({ fetchImpl = fetch, now = Date.now } = {}) 
     } finally {
       pending = null;
     }
+  };
+}
+
+export function createBundledCatalogLoader({ loadLiveCatalog = createCatalogLoader() } = {}) {
+  const snapshots = new Map();
+  return async function loadCatalog({ refresh = false, scope = "all" } = {}) {
+    if (scope !== "all" && scope !== "data-ai") throw new Error("Unknown catalog scope.");
+    if (refresh) {
+      const catalog = await loadLiveCatalog({ refresh: true });
+      return {
+        ...catalog,
+        sessions: scope === "data-ai"
+          ? catalog.sessions.filter((session) => session.isDataAI)
+          : catalog.sessions
+      };
+    }
+    if (!snapshots.has(scope)) {
+      const snapshot = Promise.all([
+        readFile(new URL(`./data/ignite-2026-${scope === "all" ? "all" : "data-ai"}-sessions.json`, import.meta.url), "utf8"),
+        readFile(new URL("./data/catalog-info.json", import.meta.url), "utf8")
+      ]).then(([raw, info]) => ({
+        ...JSON.parse(info),
+        sourceKind: "bundled",
+        ...normalizeCatalog(JSON.parse(raw))
+      }));
+      snapshots.set(scope, snapshot);
+      snapshot.catch(() => snapshots.delete(scope));
+    }
+    return snapshots.get(scope);
   };
 }

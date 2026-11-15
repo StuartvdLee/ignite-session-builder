@@ -2,17 +2,23 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { createCatalogLoader } from "./catalog-service.mjs";
+import { createBundledCatalogLoader } from "./catalog-service.mjs";
 
 const assets = new Map([
   ["/", ["index.html", "text/html; charset=utf-8"]],
   ["/index.html", ["index.html", "text/html; charset=utf-8"]],
+  ["/data-ai", ["data-ai.html", "text/html; charset=utf-8"]],
+  ["/data-ai/", ["data-ai.html", "text/html; charset=utf-8"]],
+  ["/data-ai.html", ["data-ai.html", "text/html; charset=utf-8"]],
   ["/app.js", ["app.js", "text/javascript; charset=utf-8"]],
+  ["/questionnaire.mjs", ["questionnaire.mjs", "text/javascript; charset=utf-8"]],
   ["/catalog.mjs", ["catalog.mjs", "text/javascript; charset=utf-8"]],
+  ["/data/ignite-2026-all-sessions.json", ["data/ignite-2026-all-sessions.json", "application/json; charset=utf-8"]],
+  ["/data/ignite-2026-data-ai-sessions.json", ["data/ignite-2026-data-ai-sessions.json", "application/json; charset=utf-8"]],
   ["/styles.css", ["styles.css", "text/css; charset=utf-8"]]
 ]);
 
-export function createAppServer({ loadCatalog = createCatalogLoader() } = {}) {
+export function createAppServer({ loadCatalog = createBundledCatalogLoader() } = {}) {
   return createServer(async (request, response) => {
     if (request.method !== "GET" && request.method !== "HEAD") {
       response.writeHead(405, { Allow: "GET, HEAD" });
@@ -29,8 +35,14 @@ export function createAppServer({ loadCatalog = createCatalogLoader() } = {}) {
       return;
     }
     if (url.pathname === "/api/catalog") {
+      const scope = url.searchParams.get("scope") ?? "all";
+      if (scope !== "all" && scope !== "data-ai") {
+        response.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+        response.end(request.method === "HEAD" ? undefined : JSON.stringify({ error: "Unknown catalog scope." }));
+        return;
+      }
       try {
-        const catalog = await loadCatalog({ refresh: url.searchParams.get("refresh") === "1" });
+        const catalog = await loadCatalog({ refresh: url.searchParams.get("refresh") === "1", scope });
         response.writeHead(200, {
           "Content-Type": "application/json; charset=utf-8",
           "Cache-Control": "no-store"
@@ -83,7 +95,7 @@ if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.m
     process.exit(1);
   });
   server.listen(port, host, () => {
-    console.log(`Data + AI Trailfinder: http://${host}:${port}`);
+    console.log(`Ignite 2026 Trailfinder: http://${host}:${port}`);
     console.log("Press Ctrl+C to stop.");
   });
 }

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A local Microsoft Ignite Data & AI session finder",
+  "description": "An offline-ready Microsoft Ignite 2026 session finder with all-session and Data & AI questionnaires",
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test"
