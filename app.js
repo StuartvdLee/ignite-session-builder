@@ -61,7 +61,7 @@ function renderQuestion() {
       : "Choose the closest fit";
   content.innerHTML = `
     <h2 id="question-title">${question.title}</h2>
-    <p class="question-description">${question.description}</p>
+    ${question.description ? `<p class="question-description">${question.description}</p>` : ""}
     <div class="answer-grid" role="group" aria-labelledby="question-title">
       ${question.options.map((option, index) => `
         <button class="answer-option" type="button" data-option="${index}" aria-pressed="${Array.isArray(answers[currentStep])
