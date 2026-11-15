@@ -315,10 +315,11 @@ test("API failures return non-success JSON and log the cause", async (t) => {
 
 test("serves browser modules but not backend code, and preserves HTTP behavior", async (t) => {
   const base = await serve(t);
-  for (const path of ["/", "/data-ai", "/data-ai/", "/app.js", "/styles.css", "/catalog.mjs", "/questionnaire.mjs"]) {
+  for (const path of ["/", "/data-ai", "/data-ai/", "/favicon.svg", "/app.js", "/styles.css", "/catalog.mjs", "/questionnaire.mjs"]) {
     const response = await fetch(base + path);
     assert.equal(response.status, 200, path);
     assert.ok((await response.text()).length > 100);
+    if (path === "/favicon.svg") assert.match(response.headers.get("content-type"), /image\/svg\+xml/);
   }
   for (const path of ["/server.mjs", "/catalog-service.mjs", "/package.json", "/test/catalog.test.mjs"]) {
     assert.equal((await fetch(base + path)).status, 404, path);
@@ -343,6 +344,7 @@ test("pages select distinct questionnaires and APIs load their snapshots without
   assert.match(dataPage, /data-scope="data-ai"/);
   assert.match(dataPage, /href="\/"/);
   for (const page of [home, dataPage]) {
+    assert.match(page, /<link rel="icon" type="image\/svg\+xml" href="\/favicon\.svg">/);
     assert.match(page, /<\/div>\s*<button id="refresh-catalog"[^>]*>Refresh catalog<\/button>\s*<\/div>\s*<p class="catalog-note">Offline JSON:/);
   }
   const full = await (await fetch(base + "/api/catalog")).json();
