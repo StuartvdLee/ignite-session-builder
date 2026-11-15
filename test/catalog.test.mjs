@@ -341,6 +341,20 @@ test("serves the bundled technology logos without a network", async (t) => {
   assert.equal(await head.text(), "");
 });
 
+test("both questionnaires embed the full icon sprite for local SVG references", async (t) => {
+  const base = await serve(t);
+  const sprite = await (await fetch(`${base}/assets/technology-icons.svg`)).text();
+  for (const path of ["/", "/index.html", "/data-ai", "/data-ai/", "/data-ai.html"]) {
+    const response = await fetch(base + path);
+    const page = await response.text();
+    assert.ok(page.includes(`<div class="technology-sprite" aria-hidden="true">${sprite}</div>`), path);
+    assert.equal(Number(response.headers.get("content-length")), Buffer.byteLength(page), path);
+    const head = await fetch(base + path, { method: "HEAD" });
+    assert.equal(head.headers.get("content-length"), response.headers.get("content-length"), path);
+    assert.equal(await head.text(), "");
+  }
+});
+
 test("pages select distinct questionnaires and APIs load their snapshots without a network", async (t) => {
   const base = await serve(t, {
     loadCatalog: createBundledCatalogLoader({ loadLiveCatalog: async () => {

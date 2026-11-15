@@ -69,7 +69,14 @@ export function createAppServer({ loadCatalog = createBundledCatalogLoader() } =
     }
 
     try {
-      const body = await readFile(new URL(asset[0], import.meta.url));
+      let body = await readFile(new URL(asset[0], import.meta.url));
+      if (asset[0] === "index.html" || asset[0] === "data-ai.html") {
+        const marker = "<!-- technology-icons -->";
+        const html = body.toString("utf8");
+        if (!html.includes(marker)) throw new Error(`Missing technology icon marker in ${asset[0]}`);
+        const sprite = await readFile(new URL("assets/technology-icons.svg", import.meta.url), "utf8");
+        body = Buffer.from(html.replace(marker, `<div class="technology-sprite" aria-hidden="true">${sprite}</div>`));
+      }
       response.writeHead(200, {
         "Content-Type": asset[1],
         "Content-Length": body.length,

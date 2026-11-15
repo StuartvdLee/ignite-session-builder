@@ -182,6 +182,13 @@ h1 span {
 .answer-option:hover { border-color: rgba(173, 145, 255, 0.6); transform: translateY(-1px); }
 .answer-option[aria-pressed="true"] { border-color: var(--violet); background: rgba(173, 145, 255, 0.12); }
 .answer-icon { width: 26px; flex: 0 0 26px; text-align: center; font-size: 19px; }
+.technology-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 .answer-visual {
   display: grid;
   width: 42px;
